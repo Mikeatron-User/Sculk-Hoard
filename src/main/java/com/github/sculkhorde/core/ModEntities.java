@@ -96,6 +96,8 @@ public class ModEntities {
     public static final RegistryObject<EntityType<ElementalBreezeMagicCircleAttackAttackEntity>> ELEMENTAL_BREEZE_MAGIC_CIRCLE = ENTITY_TYPES.register("elemental_breeze_magic_circle", () -> EntityType.Builder.<ElementalBreezeMagicCircleAttackAttackEntity>of(ElementalBreezeMagicCircleAttackAttackEntity::new, MobCategory.MISC).sized(3f, 3f).clientTrackingRange(4).updateInterval(10).build("elemental_breeze_magic_circle"));
     public static final RegistryObject<EntityType<SoulSpearSummonerAttackEntity>> SOUL_SPEAR_SUMMONER = ENTITY_TYPES.register("soul_spear_summoner_entity", () -> EntityType.Builder.<SoulSpearSummonerAttackEntity>of(SoulSpearSummonerAttackEntity::new, MobCategory.MISC).sized(3f, 3f).clientTrackingRange(4).updateInterval(10).build("soul_spear_summoner_entity"));
     public static final RegistryObject<EntityType<ZoltraakAttackEntity>> ZOLTRAAK_ATTACK_ENTITY = ENTITY_TYPES.register("zoltraak_attack_entity", () -> EntityType.Builder.<ZoltraakAttackEntity>of(ZoltraakAttackEntity::new, MobCategory.MISC).sized(3f, 3f).clientTrackingRange(4).updateInterval(10).build("zoltraak_attack_entity"));
+    public static String SOUL_BLAST_ENTITY_ID = "soul_blast";
+    public static final RegistryObject<EntityType<SoulBlastAttackEntity>> SOUL_BLAST_ATTACK_ENTITY = ENTITY_TYPES.register(SOUL_BLAST_ENTITY_ID, () -> EntityType.Builder.<SoulBlastAttackEntity>of(SoulBlastAttackEntity::new, MobCategory.MISC).sized(3f, 3f).clientTrackingRange(4).updateInterval(10).build(SOUL_BLAST_ENTITY_ID));
 
     public static class EntityTags
     {

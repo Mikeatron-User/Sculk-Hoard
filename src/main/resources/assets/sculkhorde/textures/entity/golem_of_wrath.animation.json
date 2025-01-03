@@ -1,9 +1,0 @@
-{
-	"format_version": "1.8.0",
-	"animations": {
-		"golem_of_wrath.animations": {
-			"loop": true
-		}
-	},
-	"geckolib_format_version": 2
-}
