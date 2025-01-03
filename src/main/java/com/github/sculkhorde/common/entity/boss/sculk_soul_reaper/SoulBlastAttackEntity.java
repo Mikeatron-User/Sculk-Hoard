@@ -33,7 +33,6 @@ public class SoulBlastAttackEntity extends SpecialEffectEntity implements GeoEnt
 
     public static int LIFE_TIME = TickUnits.convertSecondsToTicks(1);
     public int currentLifeTicks = 0;
-    private double pushUpStrength = 0.1; // Strength of the push effect
     private boolean startedPlayingSFX = false;
 
     public SoulBlastAttackEntity(EntityType<?> entityType, Level level) {
@@ -41,18 +40,12 @@ public class SoulBlastAttackEntity extends SpecialEffectEntity implements GeoEnt
     }
 
     public SoulBlastAttackEntity(Level level) {
-        this(ModEntities.ENDER_BUBBLE_ATTACK.get(), level);
+        this(ModEntities.SOUL_BLAST_ATTACK_ENTITY.get(), level);
     }
 
     public SoulBlastAttackEntity(Level level, LivingEntity sourceEntity) {
         this(level);
         setOwner(sourceEntity);
-    }
-
-    public SoulBlastAttackEntity enableDeleteAfterTime(int ticks)
-    {
-        LIFE_TIME = ticks;
-        return this;
     }
 
     private void pushOutEntities(double range) {

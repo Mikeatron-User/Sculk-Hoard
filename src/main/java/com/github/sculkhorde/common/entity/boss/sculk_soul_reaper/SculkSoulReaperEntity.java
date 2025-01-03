@@ -274,11 +274,6 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
 
         // #### LEVEL 1 ####
 
-        this.goalSelector.addGoal(1, new ReaperCloseRangeAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(1), 1,1,
-                new FloorSoulSpearsAttackGoal(this),
-                new ZoltraakAttackGoal(this)
-        ));
-
         this.goalSelector.addGoal(2, new ReaperAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(1), 1,1,
                 new FangsAttackGoal(this),
                 new FangsAttackGoal(this),
@@ -290,8 +285,8 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
         // #### LEVEL 2 ####
 
         this.goalSelector.addGoal(1, new ReaperCloseRangeAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(1), 2,2,
-                new FloorSoulSpearsAttackGoal(this),
-                new ZoltraakAttackGoal(this)
+                new SoulBlastAttackGoal(this),
+                new FloorSoulSpearsAttackGoal(this)
         ));
 
         this.goalSelector.addGoal(2, new ReaperAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(15), 2,2,
@@ -323,9 +318,8 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
         // #### LEVEL 3+ ####
 
         this.goalSelector.addGoal(1, new ReaperCloseRangeAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(1), 3,-1,
-                new FloorSoulSpearsAttackGoal(this),
-                new SummonSoulSpearSummonerGoal(this),
-                new ZoltraakBarrageAttackGoal(this)
+                new SoulBlastAttackGoal(this),
+                new FloorSoulSpearsAttackGoal(this)
         ));
 
         this.goalSelector.addGoal(2, new ReaperAttackSequenceGoal(this, TickUnits.convertSecondsToTicks(20), 3,-1,
