@@ -36,7 +36,6 @@ public class SoulReapterNavigator extends Goal {
         {
             return false;
         }
-        /*
         else if (this.target.distanceTo(this.mob) < this.minDistance)
         {
             Vec3 vec3 = DefaultRandomPos.getPosAway(this.mob, 16, 7, this.target.position());
@@ -52,9 +51,6 @@ public class SoulReapterNavigator extends Goal {
                 return true;
             }
         }
-
-         */
-
         else if (this.target.distanceTo(this.mob) > this.maxDistance)
         {
             Vec3 vec3 = DefaultRandomPos.getPosTowards(this.mob, 16, 7, this.target.position(), (double)((float)Math.PI / 2F));
