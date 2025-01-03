@@ -151,6 +151,7 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
 
             // Spawn Floor Soul Spear
             FloorSoulSpearsAttackEntity entity = new FloorSoulSpearsAttackEntity(mob, current.getX(), current.getY() + 1, current.getZ(), 0);
+            entity.setOwner(mob);
             mob.level().addFreshEntity(entity);
 
             if(debugMode)
