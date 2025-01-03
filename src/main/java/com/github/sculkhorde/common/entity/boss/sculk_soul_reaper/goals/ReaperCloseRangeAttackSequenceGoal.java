@@ -6,7 +6,7 @@ import net.minecraft.world.entity.Mob;
 public class ReaperCloseRangeAttackSequenceGoal extends ReaperAttackSequenceGoal {
 
 
-    protected final int REQUIRED_TARGET_DISTANCE = 7;
+    protected final int REQUIRED_TARGET_DISTANCE = 10;
 
     public ReaperCloseRangeAttackSequenceGoal(Mob mob, long executionCooldown, int minDifficulty, int maxDifficulty, AttackStepGoal... attacksIn) {
         super(mob, executionCooldown, minDifficulty, maxDifficulty, attacksIn);

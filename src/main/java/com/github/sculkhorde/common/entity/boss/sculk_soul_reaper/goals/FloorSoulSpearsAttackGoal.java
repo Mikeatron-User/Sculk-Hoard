@@ -40,9 +40,11 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         super.start();
         enemies = EntityAlgorithms.getHostileEntitiesInBoundingBox((ServerLevel) mob.level(), mob.getBoundingBox().inflate(20));
 
+        int distanceFromGround = (int) EntityAlgorithms.getHeightOffGround(mob);
+
         for(LivingEntity e : enemies)
         {
-            spawners.add(new FloorSoulSpearsSpawner((ServerLevel) mob.level(), mob.blockPosition(), e));
+            spawners.add(new FloorSoulSpearsSpawner((ServerLevel) mob.level(), mob.blockPosition().below(distanceFromGround), e));
         }
     }
 
