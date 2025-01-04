@@ -7,6 +7,7 @@ import net.minecraft.world.entity.Mob;
 
 public class ReaperAttackSequenceGoal extends AttackSequenceGoal {
 
+
     protected int minDifficulty = 0;
     protected int maxDifficulty = 0;
 
@@ -28,18 +29,27 @@ public class ReaperAttackSequenceGoal extends AttackSequenceGoal {
             return false;
         }
 
-        if(!getReaper().isCurrentAttackOrThereIsNone(this))
+        if(getReaper().isThereAnotherAttackActive(this))
         {
+            if(getReaper().getCurrentAttack().getCurrentGoal() == null)
+            {
+                reasonForNoStart = "There is already an attack going on: null";
+                return false;
+            }
+
+            reasonForNoStart = "There is already an attack going on: \n   " + getReaper().getCurrentAttack().getCurrentGoal().getClass().getName();
             return false;
         }
 
         if(getReaper().getMobDifficultyLevel() < minDifficulty)
         {
+            reasonForNoStart = "Incorrect Difficulty";
             return false;
         }
 
         if(getReaper().getMobDifficultyLevel() > maxDifficulty && maxDifficulty != -1)
         {
+            reasonForNoStart = "Incorrect Difficulty";
             return false;
         }
 

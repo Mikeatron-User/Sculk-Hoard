@@ -22,7 +22,7 @@ public class FangsAttackGoal extends ReaperCastSpellGoal
         {
             return false;
         }
-        if(!mob.getTarget().onGround())
+        else if(!mob.getTarget().onGround())
         {
             return false;
         }

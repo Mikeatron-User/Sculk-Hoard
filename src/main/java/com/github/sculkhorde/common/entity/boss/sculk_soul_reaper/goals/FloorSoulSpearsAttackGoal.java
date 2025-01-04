@@ -34,6 +34,7 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         super(mob);
     }
 
+
     @Override
     public void start()
     {
@@ -48,11 +49,23 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         }
     }
 
+    protected boolean areAllTargetsDead()
+    {
+        for(LivingEntity entity : enemies)
+        {
+            if(entity.isAlive())
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     protected void doAttackTick() {
         elapsedAttackDuration++;
 
-        if(elapsedAttackDuration >= maxAttackDuration)
+        if(elapsedAttackDuration >= maxAttackDuration || areAllTargetsDead())
         {
             setSpellCompleted();
             return;
@@ -77,6 +90,8 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         super.stop();
         elapsedAttackDuration = 0;
         spawner = null;
+        enemies.clear();
+        spawners.clear();
     }
 
 

@@ -1,14 +1,15 @@
 package com.github.sculkhorde.common.entity.goal;
 
-import com.github.sculkhorde.core.SculkHorde;
-import com.github.sculkhorde.util.TickUnits;
+import com.github.sculkhorde.common.entity.entity_debugging.IDebuggableGoal;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
-public class AttackSequenceGoal extends Goal
+public class AttackSequenceGoal extends Goal implements IDebuggableGoal
 {
+    protected String reasonForNoStart = "N/A";
 
     protected ArrayList<AttackStepGoal> attacks = new ArrayList<>();
     protected int currentAttackIndex = 0;
@@ -16,9 +17,6 @@ public class AttackSequenceGoal extends Goal
     protected Mob mob;
     protected boolean finishedAttackSequence = false;
     protected long executionCooldown = 0;
-
-    protected long timeOfLastEnemy = 0;
-    protected final long NO_ENEMY_TIMEOUT = TickUnits.convertSecondsToTicks(15);
 
     public AttackSequenceGoal(Mob mob, long executionCooldown, AttackStepGoal... attacksIn)
     {
@@ -29,6 +27,11 @@ public class AttackSequenceGoal extends Goal
             goal.setSequenceParent(this);
             attacks.add(goal);
         }
+    }
+
+    public boolean isAttackSequenceFinished()
+    {
+        return finishedAttackSequence;
     }
 
     protected Goal getCurrentGoal()
@@ -52,17 +55,29 @@ public class AttackSequenceGoal extends Goal
     @Override
     public void start() {
         super.start();
-        SculkHorde.LOGGER.debug("Sculk Reaper Entity | Starting Attack: " + getCurrentGoal().getClass());
+        //SculkHorde.LOGGER.debug("Sculk Reaper Entity | Starting Attack: " + getCurrentGoal().getClass());
         getCurrentGoal().start();
     }
 
     @Override
     public boolean canUse() {
 
-        if(attacks.isEmpty()) { return false; }
+        if(attacks.isEmpty())
+        {
+            reasonForNoStart = "No attacks in this attack sequence.";
+            return false;
+        }
 
         if(Math.abs(mob.level().getGameTime() - timeOfLastExecution) < getExecutionCooldown())
         {
+            reasonForNoStart = "On Attack Cooldown";
+            return false;
+        }
+
+        if(!getCurrentGoal().canUse())
+        {
+            reasonForNoStart = "Attack in Sequence `canUse()` returned false.";
+            cancelAttackSequence();
             return false;
         }
 
@@ -79,22 +94,7 @@ public class AttackSequenceGoal extends Goal
 
         if(mob.getTarget() == null)
         {
-            if(timeOfLastEnemy == 0)
-            {
-                timeOfLastEnemy = mob.level().getGameTime();
-            }
-
-            if(Math.abs(mob.level().getGameTime() - timeOfLastEnemy) >= NO_ENEMY_TIMEOUT)
-            {
-                finishedAttackSequence = true;
-            }
-        }
-        else
-        {
-            if(timeOfLastEnemy != 0)
-            {
-                timeOfLastEnemy = 0;
-            }
+            cancelAttackSequence();
         }
 
         getCurrentGoal().tick();
@@ -115,9 +115,39 @@ public class AttackSequenceGoal extends Goal
         }
         else
         {
-            SculkHorde.LOGGER.debug("Sculk Reaper Entity | Stopping Attack: " + getCurrentGoal().getClass());
+            //SculkHorde.LOGGER.debug("Sculk Reaper Entity | Stopping Attack: " + getCurrentGoal().getClass());
             getCurrentGoal().stop();
         }
         super.stop();
+    }
+
+    public void cancelAttackSequence()
+    {
+        finishedAttackSequence = true;
+    }
+
+    @Override
+    public Optional<String> getLastReasonForGoalNoStart() {
+        return Optional.of(reasonForNoStart);
+    }
+
+    @Override
+    public Optional<String> getGoalName() {
+        if(getCurrentGoal() != null)
+        {
+            return Optional.of("Attack Sequence | " + getCurrentGoal().getClass().getName());
+        }
+
+        return Optional.of("Attack Sequence");
+    }
+
+    @Override
+    public long getLastTimeOfGoalExecution() {
+        return timeOfLastExecution;
+    }
+
+    @Override
+    public long getTimeRemainingBeforeCooldownOver() {
+        return mob.level().getGameTime() - timeOfLastExecution;
     }
 }

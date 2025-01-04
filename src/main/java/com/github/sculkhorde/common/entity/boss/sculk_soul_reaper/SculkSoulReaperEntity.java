@@ -5,12 +5,14 @@ import com.github.sculkhorde.common.entity.SculkRavagerEntity;
 import com.github.sculkhorde.common.entity.SculkVindicatorEntity;
 import com.github.sculkhorde.common.entity.SculkWitchEntity;
 import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.goals.*;
+import com.github.sculkhorde.common.entity.entity_debugging.GoalDebuggerUtility;
 import com.github.sculkhorde.common.entity.goal.ImprovedRandomStrollGoal;
 import com.github.sculkhorde.common.entity.goal.InvalidateTargetGoal;
 import com.github.sculkhorde.common.entity.goal.NearestLivingEntityTargetGoal;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModMobEffects;
+import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.util.SquadHandler;
 import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
@@ -24,6 +26,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
@@ -31,7 +35,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -236,6 +243,11 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
 
     public ReaperAttackSequenceGoal getCurrentAttack()
     {
+        if(currentAttack != null && currentAttack.isAttackSequenceFinished())
+        {
+            currentAttack = null;
+        }
+
         return currentAttack;
     }
 
@@ -249,11 +261,18 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
         currentAttack = null;
     }
 
-    public boolean isCurrentAttackOrThereIsNone(ReaperAttackSequenceGoal goal)
+    public boolean isThereAnotherAttackActive(ReaperAttackSequenceGoal goal)
     {
-        if(currentAttack == null) { return true; };
+        if(getCurrentAttack() == null)
+        {
+            return false;
+        }
+        else if(getCurrentAttack().equals(goal))
+        {
+            return false;
+        }
 
-        return currentAttack.equals(goal);
+        return true;
     }
 
     @Override
@@ -492,5 +511,40 @@ public class SculkSoulReaperEntity extends Monster implements GeoEntity, ISculkS
     public boolean dampensVibrations() {
         return true;
     }
-    
+
+
+    //#### Debug Function ####
+
+
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+
+        if(player.level().isClientSide())
+        {
+            return super.mobInteract(player, hand);
+        }
+
+        if(SculkHorde.isDebugMode())
+        {
+            SculkHorde.LOGGER.info("\nACTIVE GOALS\n");
+            for(WrappedGoal wrapGoal : goalSelector.getRunningGoals().toList())
+            {
+                Goal goal = wrapGoal.getGoal();
+                if(!(goal instanceof ReaperCloseRangeAttackSequenceGoal))
+                {
+                    continue;
+                }
+                GoalDebuggerUtility.printGoalToConsole(player.level(), goal);
+            }
+
+            SculkHorde.LOGGER.info("\nINACTIVE GOALS\n");
+            for(WrappedGoal wrapGoal : goalSelector.getAvailableGoals())
+            {
+                Goal goal = wrapGoal.getGoal();
+                GoalDebuggerUtility.printGoalToConsole(player.level(), goal);
+            }
+        }
+
+        return super.mobInteract(player, hand);
+    }
 }
