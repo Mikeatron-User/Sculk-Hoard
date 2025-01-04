@@ -339,10 +339,10 @@
   "item.sculkhorde.soul_disrupter": "Soul Disrupter",
   "tooltip.sculkhorde.soul_disrupter.functionality": "§7§oAn weapon that when pointed at a Soul Reaper, will weaken it for 1 minute. While the weakness is active, it brings down it's difficulty by one level.",
   "tooltip.sculkhorde.soul_disrupter.lore": "§7§oAn improvised weapon designed to disrupt the powers of the Soul Reaper temporarily.",
-  "item.sculkhorde.ferrisculk": "Ferrisculk",
-  "tooltip.sculkhorde.ferrisculk.functionality": "WIP",
-  "tooltip.sculkhorde.ferrisculk.lore": "WIP",
-  "item.sculkhorde.diasculk": "Diasculk",
-  "tooltip.sculkhorde.diasculk.functionality": "WIP",
-  "tooltip.sculkhorde.diasculk.lore": "WIP"
+  "item.sculkhorde.ferriscite": "Ferriscite",
+  "tooltip.sculkhorde.ferriscite.functionality": "WIP",
+  "tooltip.sculkhorde.ferriscite.lore": "WIP",
+  "item.sculkhorde.diascite": "Diascite",
+  "tooltip.sculkhorde.diascite.functionality": "WIP",
+  "tooltip.sculkhorde.diascite.lore": "WIP"
 }

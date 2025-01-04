@@ -34,8 +34,8 @@ public class ModCreativeModeTab {
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.FUNGAL_SCULK_BLOCK.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.FUNGAL_SCULK_STEM_BLOCK.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.TENDRIL_CORE_BLOCK.get());
-                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.FERRISCULK.get());
-                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.DIASCULK.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.FERRISCITE.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.DIASCITE.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.SOUL_DISRUPTER.get());
 
 
