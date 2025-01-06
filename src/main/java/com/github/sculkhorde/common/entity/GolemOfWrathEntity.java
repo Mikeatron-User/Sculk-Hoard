@@ -1,20 +1,19 @@
 package com.github.sculkhorde.common.entity;
 
-import com.github.sculkhorde.common.entity.goal.FocusSquadTarget;
-import com.github.sculkhorde.common.entity.goal.ImprovedRandomStrollGoal;
-import com.github.sculkhorde.common.entity.goal.NearestLivingEntityTargetGoal;
-import com.github.sculkhorde.common.entity.goal.TargetAttacker;
+import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
+import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
+import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -23,7 +22,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
+public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
 
     /**
      * In order to create a mob, the following java files were created/edited.<br>
@@ -84,7 +83,7 @@ public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
     public void registerGoals() {
 
         super.registerGoals();
-        /*
+
         Goal[] goalSelectorPayload = goalSelectorPayload();
         for(int priority = 0; priority < goalSelectorPayload.length; priority++)
         {
@@ -96,9 +95,6 @@ public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
         {
             this.targetSelector.addGoal(priority, targetSelectorPayload[priority]);
         }
-
-         */
-
     }
 
     /**
@@ -115,12 +111,11 @@ public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
                 {
                         //SwimGoal(mob)
                         new FloatGoal(this),
+                        new AttackGoal(),
                         //MoveTowardsTargetGoal(mob, speedModifier, within) THIS IS FOR NON-ATTACKING GOALS
                         new MoveTowardsTargetGoal(this, 0.8F, 20F),
                         //WaterAvoidingRandomWalkingGoal(mob, speedModifier)
-                        new ImprovedRandomStrollGoal(this, 1.0D).setToAvoidWater(true),
-                        //LookAtGoal(mob, targetType, lookDistance)
-                        new LookAtPlayerGoal(this, Pig.class, 8.0F),
+                        new WaterAvoidingRandomStrollGoal(this, 0.7D),
                         //LookRandomlyGoal(mob)
                         new RandomLookAroundGoal(this),
                         new OpenDoorGoal(this, true)
@@ -141,9 +136,8 @@ public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
         Goal[] goals =
                 {
                         //HurtByTargetGoal(mob)
-                        new TargetAttacker(this),
-                        new FocusSquadTarget(this),
-                        new NearestLivingEntityTargetGoal<>(this, true, true)
+                        new HurtByTargetGoal(this),
+                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true)
 
                 };
         return goals;
@@ -174,6 +168,49 @@ public class GolemOfWrathEntity extends IronGolem implements GeoEntity {
 
     protected void playStepSound(BlockPos pPos, BlockState pBlock) {
         this.playSound(SoundEvents.IRON_GOLEM_STEP, 0.15F, 1.0F);
+    }
+
+    class AttackGoal extends CustomMeleeAttackGoal
+    {
+
+        public AttackGoal()
+        {
+            super(GolemOfWrathEntity.this, 1.0D, false, 10);
+        }
+
+        @Override
+        public boolean canUse()
+        {
+            return mob.getTarget() != null;
+        }
+
+        @Override
+        public boolean canContinueToUse()
+        {
+            return canUse();
+        }
+
+        protected double getAttackReachSqr(LivingEntity pAttackTarget)
+        {
+            float f = GolemOfWrathEntity.this.getBbWidth() - 0.1F;
+            return (double)(f * 2.0F * f * 2.0F + pAttackTarget.getBbWidth());
+        }
+
+        @Override
+        protected int getAttackInterval() {
+            return TickUnits.convertSecondsToTicks(2);
+        }
+
+        @Override
+        protected void triggerAnimation() {
+            //((SculkRavagerEntity)mob).triggerAnim("attack_controller", "attack_animation");
+        }
+
+        @Override
+        public void onTargetHurt(LivingEntity target)
+        {
+
+        }
     }
 
 }

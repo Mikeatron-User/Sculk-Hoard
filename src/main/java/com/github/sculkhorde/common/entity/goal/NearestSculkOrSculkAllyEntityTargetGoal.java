@@ -1,8 +1,6 @@
 package com.github.sculkhorde.common.entity.goal;
 
-import com.github.sculkhorde.common.entity.ISculkSmartEntity;
 import com.github.sculkhorde.util.EntityAlgorithms;
-import com.github.sculkhorde.util.SquadHandler;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -24,33 +22,22 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
 
     public NearestSculkOrSculkAllyEntityTargetGoal(Mob mobEntity, boolean mustSee, boolean mustReach)
     {
-        this(mobEntity, false, false, null);
-    }
-
-    public NearestSculkOrSculkAllyEntityTargetGoal(Mob mobEntity, boolean mustSee, boolean mustReach, @Nullable Predicate<LivingEntity> predicate)
-    {
-        super(mobEntity, false, false);
+        super(mobEntity, mustSee, mustReach);
         this.setFlags(EnumSet.of(Flag.TARGET));
         //this.targetConditions = (new EntityPredicate()).range(this.getFollowDistance()).selector(predicate);
     }
 
-    /** Functionality **/
-    @Override
-    public boolean canUse()
+    public void setTargetMob(@Nullable LivingEntity targetIn) {
+        this.targetMob = targetIn;
+    }
+
+    public LivingEntity getTargetMob() {
+        return this.targetMob;
+    }
+
+    protected AABB getTargetSearchArea(double range)
     {
-        ISculkSmartEntity sculkMob = ((ISculkSmartEntity)this.mob);
-        if(sculkMob.getSquad() != null) {
-
-            boolean doesSquadExist = SquadHandler.doesSquadExist(sculkMob.getSquad());
-            boolean isLeaderOfSquad = sculkMob.getSquad().isSquadLeader();
-            if (doesSquadExist && !isLeaderOfSquad) {
-                return false;
-            }
-        }
-
-        boolean canWeUse = !((ISculkSmartEntity)this.mob).getTargetParameters().isEntityValidTarget(this.mob.getTarget(), true);
-        // If the mob is already targeting something valid, don't bother
-        return canWeUse;
+        return this.mob.getBoundingBox().inflate(range, this.mob.getAttributeValue(Attributes.FOLLOW_RANGE), range);
     }
 
     protected boolean isEntityValidTarget(LivingEntity livingEntity)
@@ -60,11 +47,16 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
 
     public final Predicate<LivingEntity> isValidTarget = this::isEntityValidTarget;
 
-    protected AABB getTargetSearchArea(double range)
+    /** Functionality **/
+    @Override
+    public boolean canUse()
     {
-        return this.mob.getBoundingBox().inflate(range, this.mob.getAttributeValue(Attributes.FOLLOW_RANGE), range);
-    }
 
+
+        boolean canWeUse = mob.getTarget() == null || mob.getTarget().isDeadOrDying();
+        // If the mob is already targeting something valid, don't bother
+        return canWeUse;
+    }
     protected void findTarget()
     {
         if(this.mob.level().getGameTime() - lastTimeSinceTargetSearch < targetSearchInterval)
@@ -80,7 +72,7 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
                 this.getTargetSearchArea(this.getFollowDistance()), isValidTarget);
 
         //If there is available targets
-        if(possibleTargets.size() <= 0)
+        if(possibleTargets.isEmpty())
         {
             return;
         }
@@ -105,13 +97,4 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
         this.mob.setTarget(getTargetMob());
         super.start();
     }
-
-    public void setTargetMob(@Nullable LivingEntity targetIn) {
-        this.targetMob = targetIn;
-    }
-
-    public LivingEntity getTargetMob() {
-        return this.targetMob;
-    }
-
 }
