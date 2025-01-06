@@ -2,11 +2,18 @@ package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
 import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
+import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
+import com.github.sculkhorde.core.ModMobEffects;
+import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
@@ -17,10 +24,14 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
 
@@ -35,9 +46,9 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
      */
 
     //The Health
-    public static final float MAX_HEALTH = 50F;
+    public static final float MAX_HEALTH = 200F;
     //The armor of the mob
-    public static final float ARMOR = 10F;
+    public static final float ARMOR = 30F;
     //ATTACK_DAMAGE determines How much damage it's melee attacks do
     public static final float ATTACK_DAMAGE = 10F;
     //ATTACK_KNOCKBACK determines the knockback a mob will take
@@ -45,7 +56,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
     //FOLLOW_RANGE determines how far away this mob can see and chase enemies
     public static final float FOLLOW_RANGE = 32F;
     //MOVEMENT_SPEED determines how far away this mob can see other mobs
-    public static final float MOVEMENT_SPEED = 0.25F;
+    public static final float MOVEMENT_SPEED = 0.45F;
+    public static final float KNOCKBACK_RESISTANCE = 100.0F;
 
     // Controls what types of entities this mob can target
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -71,7 +83,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
                 .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE)
                 .add(Attributes.ATTACK_KNOCKBACK, ATTACK_KNOCKBACK)
                 .add(Attributes.FOLLOW_RANGE,FOLLOW_RANGE)
-                .add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED);
+                .add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
+                .add(Attributes.KNOCKBACK_RESISTANCE, MOVEMENT_SPEED);
     }
 
     /**
@@ -111,7 +124,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
                 {
                         //SwimGoal(mob)
                         new FloatGoal(this),
-                        new AttackGoal(),
+                        new MeleeAttackGoal(),
                         //MoveTowardsTargetGoal(mob, speedModifier, within) THIS IS FOR NON-ATTACKING GOALS
                         new MoveTowardsTargetGoal(this, 0.8F, 20F),
                         //WaterAvoidingRandomWalkingGoal(mob, speedModifier)
@@ -136,11 +149,42 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         Goal[] goals =
                 {
                         //HurtByTargetGoal(mob)
-                        new HurtByTargetGoal(this),
-                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true)
-
+                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true),
+                        new HurtByTargetGoal(this)
                 };
         return goals;
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+
+        if(!hasEffect(ModMobEffects.PURITY.get()))
+        {
+            MobEffectInstance effect = new MobEffectInstance(ModMobEffects.PURITY.get(), Integer.MAX_VALUE, 1);
+            addEffect(effect);
+        }
+
+        if(!hasEffect(MobEffects.REGENERATION))
+        {
+            MobEffectInstance effect = new MobEffectInstance(MobEffects.REGENERATION, Integer.MAX_VALUE, 0);
+            addEffect(effect);
+        }
+
+        if(hasEffect(ModMobEffects.CORRODED.get()))
+        {
+            removeEffect(ModMobEffects.CORRODED.get());
+        }
+    }
+
+    @Override
+    protected void doPush(Entity pusher) {
+        if(pusher instanceof LivingEntity livingEntity)
+        {
+            if ((EntityAlgorithms.isSculkLivingEntity.test(livingEntity) || EntityAlgorithms.isLivingEntityAllyToSculkHorde(livingEntity)) && this.getRandom().nextInt(20) == 0) {
+                this.setTarget(livingEntity);
+            }
+        }
     }
 
     @Override
@@ -170,10 +214,10 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         this.playSound(SoundEvents.IRON_GOLEM_STEP, 0.15F, 1.0F);
     }
 
-    class AttackGoal extends CustomMeleeAttackGoal
+    class MeleeAttackGoal extends CustomMeleeAttackGoal
     {
 
-        public AttackGoal()
+        public MeleeAttackGoal()
         {
             super(GolemOfWrathEntity.this, 1.0D, false, 10);
         }
@@ -192,8 +236,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
 
         protected double getAttackReachSqr(LivingEntity pAttackTarget)
         {
-            float f = GolemOfWrathEntity.this.getBbWidth() - 0.1F;
-            return (double)(f * 2.0F * f * 2.0F + pAttackTarget.getBbWidth());
+            float entityBoundingBoxWidth = GolemOfWrathEntity.this.getBbWidth();
+            return entityBoundingBoxWidth * 2.0F + pAttackTarget.getBbWidth();
         }
 
         @Override
@@ -209,7 +253,18 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         @Override
         public void onTargetHurt(LivingEntity target)
         {
-
+            AABB hitbox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(target.position(), 10);
+            List<LivingEntity> hurtEntities = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(mob, (ServerLevel) mob.level(), hitbox);
+            for(LivingEntity entity : hurtEntities)
+            {
+                entity.hurt(mob.damageSources().mobAttack(mob), GolemOfWrathEntity.ATTACK_DAMAGE);
+            }
+            CursorSurfacePurifierEntity cursor = new CursorSurfacePurifierEntity(mob.level());
+            cursor.setPos(target.position());
+            cursor.setTickIntervalMilliseconds(10);
+            cursor.setMaxLifeTimeMillis(TimeUnit.SECONDS.toMillis(60));
+            cursor.setMaxTransformations(20);
+            mob.level().addFreshEntity(cursor);
         }
     }
 

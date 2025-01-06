@@ -52,10 +52,8 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
     public boolean canUse()
     {
 
-
-        boolean canWeUse = mob.getTarget() == null || mob.getTarget().isDeadOrDying();
         // If the mob is already targeting something valid, don't bother
-        return canWeUse;
+        return true;
     }
     protected void findTarget()
     {
