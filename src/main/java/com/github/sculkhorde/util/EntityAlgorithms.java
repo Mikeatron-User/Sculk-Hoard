@@ -40,6 +40,24 @@ import java.util.function.Predicate;
 
 public class EntityAlgorithms {
 
+    public static void pushAwayEntitiesFromPosition(Vec3 origin, LivingEntity entityToPush, float pushAwayStrength, float pushUpStrength)
+    {
+        // Calculate the vector from the black hole to the entity
+        double dx = entityToPush.getX() - origin.x;
+        double dz = entityToPush.getZ() - origin.z;
+
+        // Calculate the horizontal distance to the black hole (ignore vertical)
+        double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+
+
+        // Normalize the horizontal vector (prevent NaN)
+        double normalizedDx = horizontalDistance == 0 ? 0 : dx / horizontalDistance;
+        double normalizedDz = horizontalDistance == 0 ? 0 : dz / horizontalDistance;
+
+        // Apply the push outwards
+        entityToPush.push(normalizedDx * pushAwayStrength, pushUpStrength, normalizedDz * pushAwayStrength); //Apply the combined push
+    }
+
     public static void lookAt(Entity entity, Vec3 target)
     {
         double deltaX = target.x() - entity.getX();
@@ -435,6 +453,64 @@ public class EntityAlgorithms {
         }
     }
 
+    public static Predicate<LivingEntity> isLivingEntity = new Predicate<LivingEntity>()
+    {
+        @Override
+        public boolean test(LivingEntity livingEntity) {
+            return true;
+        }
+    };
+
+    public static Predicate<LivingEntity> isSculkHordeOrAllyEntity = new Predicate<LivingEntity>()
+    {
+        @Override
+        public boolean test(LivingEntity livingEntity) {
+            return isSculkLivingEntity.test(livingEntity) || isLivingEntityAllyToSculkHorde(livingEntity);
+        }
+    };
+
+    public static Predicate<LivingEntity> isNotSculkHordeEntity = new Predicate<LivingEntity>()
+    {
+        @Override
+        public boolean test(LivingEntity livingEntity) {
+            return !isSculkLivingEntity.test(livingEntity);
+        }
+    };
+
+    public static Predicate<LivingEntity> isHurtSculkHordeOrAllyEntity = new Predicate<LivingEntity>()
+    {
+        @Override
+        public boolean test(LivingEntity livingEntity) {
+
+            if(!isSculkLivingEntity.test(livingEntity) && !isLivingEntityAllyToSculkHorde(livingEntity))
+            {
+                return false;
+            }
+
+            return livingEntity.getHealth() < livingEntity.getMaxHealth();
+        }
+    };
+
+    public static Predicate<LivingEntity> isHostileEntity = new Predicate<LivingEntity>()
+    {
+        @Override
+        public boolean test(LivingEntity livingEntity) {
+            return EntityAlgorithms.isLivingEntityHostile(livingEntity) && !EntityAlgorithms.isLivingEntityExplicitDenyTarget(livingEntity);
+        }
+    };
+
+    /**
+     * Gets all living entities in the given bounding box.
+     * @param serverLevel The given world
+     * @param boundingBox The given bounding box to search for a target
+     * @return A list of valid targets
+     */
+    public static List<LivingEntity> getLivingEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<LivingEntity> predicate)
+    {
+        List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, predicate);
+        return livingEntitiesInRange;
+
+    }
 
     /**
      * Gets all living entities in the given bounding box.
@@ -444,47 +520,53 @@ public class EntityAlgorithms {
      */
     public static List<LivingEntity> getLivingEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
-        List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
-            @Override
-            public boolean test(LivingEntity livingEntity) {
-                return true;
-            }
-        });
-                  return livingEntitiesInRange;
+        List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isLivingEntity);
+
+
+
+        return livingEntitiesInRange;
 
     }
 
+    public static List<Entity> getEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<Entity> predicate)
+    {
+        List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, boundingBox, predicate);
+        return entities;
+    }
+
+    public static List<Player> getPlayersInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<Entity> predicate)
+    {
+        List<Player> entities = serverLevel.getEntitiesOfClass(Player.class, boundingBox, predicate);
+        return entities;
+    }
 
     public static List<LivingEntity> getHurtSculkHordeEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
-        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
-            @Override
-            public boolean test(LivingEntity livingEntity) {
-                return isSculkLivingEntity.test(livingEntity) && livingEntity.getHealth() < livingEntity.getMaxHealth();
-            }
-        });
+        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isHurtSculkHordeOrAllyEntity);
         return list;
     }
 
     public static List<LivingEntity> getSculkHordeEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
-        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
-            @Override
-            public boolean test(LivingEntity livingEntity) {
-                return isSculkLivingEntity.test(livingEntity);
-            }
-        });
+        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isSculkLivingEntity);
         return list;
+    }
+
+    public static List<LivingEntity> getSculkHordeOrAllyEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
+    {
+        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isSculkHordeOrAllyEntity);
+        return list;
+    }
+
+    public static List<LivingEntity> getNonSculkUnitsInBoundingBox(Level serverLevel, AABB boundingBox)
+    {
+        List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isNotSculkHordeEntity);
+        return entities;
     }
 
     public static List<LivingEntity> getHostileEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
-        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
-            @Override
-            public boolean test(LivingEntity livingEntity) {
-                return EntityAlgorithms.isLivingEntityHostile(livingEntity) && !EntityAlgorithms.isLivingEntityExplicitDenyTarget(livingEntity);
-            }
-        });
+        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isHostileEntity);
         return list;
     }
 
@@ -493,7 +575,7 @@ public class EntityAlgorithms {
         List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
             @Override
             public boolean test(LivingEntity livingEntity) {
-                return entity == null || livingEntity.getUUID() != entity.getUUID();
+                return entity != null && livingEntity.getUUID() != entity.getUUID();
             }
         });
         return list;
@@ -513,41 +595,7 @@ public class EntityAlgorithms {
                 });
     }
 
-    /**
-     * Gets all living entities in the given bounding box.
-     * @param serverLevel The given world
-     * @param boundingBox The given bounding box to search for a target
-     * @param predicate The given predicate to filter the results
-     * @return A list of valid targets
-     */
-    public static List<LivingEntity> getLivingEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<LivingEntity> predicate)
-    {
-        List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, predicate);
-        return livingEntitiesInRange;
-    }
 
-    public static List<Entity> getEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<Entity> predicate)
-    {
-        List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, boundingBox, predicate);
-        return entities;
-    }
-
-    public static List<Player> getPlayersInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<Entity> predicate)
-    {
-        List<Player> entities = serverLevel.getEntitiesOfClass(Player.class, boundingBox, predicate);
-        return entities;
-    }
-
-    public static List<LivingEntity> getNonSculkUnitsInBoundingBox(Level serverLevel, AABB boundingBox)
-    {
-        List<LivingEntity> entities = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, new Predicate<LivingEntity>() {
-            @Override
-            public boolean test(LivingEntity livingEntity) {
-                return !(EntityAlgorithms.isSculkLivingEntity.test(livingEntity));
-            }
-        });
-        return entities;
-    }
 
     public static AABB createBoundingBoxCubeAtBlockPos(Vec3 origin, int squareLength)
     {

@@ -5,6 +5,7 @@ import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTar
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
 import com.github.sculkhorde.core.ModMobEffects;
 import com.github.sculkhorde.util.EntityAlgorithms;
+import com.github.sculkhorde.util.SoundUtil;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -124,6 +125,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
                 {
                         //SwimGoal(mob)
                         new FloatGoal(this),
+                        new GroundSlamAttackGoal(),
                         new MeleeAttackGoal(),
                         //MoveTowardsTargetGoal(mob, speedModifier, within) THIS IS FOR NON-ATTACKING GOALS
                         new MoveTowardsTargetGoal(this, 0.8F, 20F),
@@ -254,8 +256,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         public void onTargetHurt(LivingEntity target)
         {
             AABB hitbox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(target.position(), 10);
-            List<LivingEntity> hurtEntities = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(mob, (ServerLevel) mob.level(), hitbox);
-            for(LivingEntity entity : hurtEntities)
+            List<LivingEntity> enemies = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(mob, (ServerLevel) mob.level(), hitbox);
+            for(LivingEntity entity : enemies)
             {
                 entity.hurt(mob.damageSources().mobAttack(mob), GolemOfWrathEntity.ATTACK_DAMAGE);
             }
@@ -268,4 +270,75 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
+    class GroundSlamAttackGoal extends Goal {
+
+        protected long ATTACK_COOLDOWN = TickUnits.convertSecondsToTicks(6);
+        protected long timeOfLastAttack = 0;
+
+        protected long CHECK_INTERVAL = TickUnits.convertSecondsToTicks(2);
+        protected long timeOfLastCheck = 0;
+
+        protected long timeOfAttackStart = 0;
+        protected long DAMAGE_DELAY = TickUnits.convertSecondsToTicks(1);
+        protected boolean isAttackOver = false;
+
+        @Override
+        public boolean canUse() {
+
+            if(Math.abs(level().getGameTime() - timeOfLastAttack) < ATTACK_COOLDOWN)
+            {
+                return false;
+            }
+
+            if (Math.abs(level().getGameTime() - timeOfLastCheck) >= CHECK_INTERVAL) {
+                timeOfLastCheck = level().getGameTime();
+
+                List<LivingEntity> hostiles = EntityAlgorithms.getSculkHordeOrAllyEntitiesInBoundingBox((ServerLevel) level(), getBoundingBox().inflate(7));
+
+                return hostiles.size() > 4;
+            }
+
+
+            return false;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return !isAttackOver;
+        }
+
+        @Override
+        public void start() {
+            timeOfAttackStart = level().getGameTime();
+            timeOfLastAttack = timeOfAttackStart;
+        }
+
+        @Override
+        public void tick() {
+            super.tick();
+
+            if (level().isClientSide()) {
+                return;
+            }
+
+            if (Math.abs(level().getGameTime() - timeOfAttackStart) >= DAMAGE_DELAY) {
+                List<LivingEntity> entities = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(GolemOfWrathEntity.this, (ServerLevel) level(), getBoundingBox().inflate(7));
+                float pushAwayStrength = 5f; // Increased push strength for better outwards effect
+                float pushUpStrength = 3f;   // Separate push up strength for vertical component.
+
+                for (LivingEntity entity : entities)
+                {
+                    EntityAlgorithms.pushAwayEntitiesFromPosition(position(), entity, pushAwayStrength, pushUpStrength);
+                }
+                SoundUtil.playHostileSoundInLevel(level(), blockPosition(), SoundEvents.RAVAGER_ATTACK);
+                isAttackOver = true;
+            }
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            isAttackOver = false;
+        }
+    }
 }
