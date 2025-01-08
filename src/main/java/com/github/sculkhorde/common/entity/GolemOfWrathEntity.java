@@ -4,6 +4,7 @@ import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
 import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
 import com.github.sculkhorde.core.ModMobEffects;
+import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SoundUtil;
 import com.github.sculkhorde.util.TickUnits;
@@ -32,9 +33,10 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
+public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPurityGolemEntity {
 
     /**
      * In order to create a mob, the following java files were created/edited.<br>
@@ -63,6 +65,9 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
     // Controls what types of entities this mob can target
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    BlockPos boundBlockPos = null;
+
+
     /**
      * The Constructor
      * @param type The Mob Type
@@ -87,6 +92,9 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
                 .add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
                 .add(Attributes.KNOCKBACK_RESISTANCE, MOVEMENT_SPEED);
     }
+
+
+    // #### Events ####
 
     /**
      * Registers Goals with the entity. The goals determine how an AI behaves ingame.
@@ -177,6 +185,12 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         {
             removeEffect(ModMobEffects.CORRODED.get());
         }
+
+        // If we have a bound block, and we travel too far from it, just die.
+        if(getBoundBlockPos().isPresent() && BlockAlgorithms.getBlockDistance(blockPosition(), getBoundBlockPos().get()) > getMaxDistanceFromBoundBlockBeforeDeath())
+        {
+            this.hurt(damageSources().genericKill(), Integer.MAX_VALUE);
+        }
     }
 
     @Override
@@ -190,6 +204,23 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
+    public Optional<BlockPos> getBoundBlockPos() {
+        return Optional.ofNullable(boundBlockPos);
+    }
+
+    @Override
+    public int getMaxDistanceFromBoundBlockBeforeDeath() {
+        return 100;
+    }
+
+    @Override
+    public int getMaxTravelDistanceFromBoundBlock() {
+        return getMaxDistanceFromBoundBlockBeforeDeath() - 20;
+    }
+
+    // #### Animation Code ####
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
 
     }
@@ -198,7 +229,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         return this.cache;
     }
 
-
+    // #### Sound Code ####
 
     protected SoundEvent getAmbientSound() {
         return SoundEvents.IRON_GOLEM_REPAIR;
@@ -270,7 +301,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity {
         }
     }
 
-    class GroundSlamAttackGoal extends Goal {
+    class GroundSlamAttackGoal extends Goal
+    {
 
         protected long ATTACK_COOLDOWN = TickUnits.convertSecondsToTicks(6);
         protected long timeOfLastAttack = 0;
