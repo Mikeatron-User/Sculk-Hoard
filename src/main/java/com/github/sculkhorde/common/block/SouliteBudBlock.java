@@ -125,9 +125,9 @@ public class SouliteBudBlock extends AmethystBlock implements SimpleWaterloggedB
 
       if(getAge(blockState) == 2)
       {
-         BlockState newBlockState = ModBlocks.SOULITE_CLUSTER_BLOCK.get().defaultBlockState();
-         newBlockState.setValue(SouliteClusterBlock.FACING, getFacingDirection(blockState));
-         level.setBlock(pos, newBlockState, 2);
+         BlockState newBlockState = ModBlocks.SOULITE_CLUSTER_BLOCK.get().defaultBlockState()
+                 .setValue(SouliteClusterBlock.FACING, blockState.getValue(SouliteBudBlock.FACING));
+         level.setBlockAndUpdate(pos, newBlockState);
          return;
       }
 
@@ -135,7 +135,7 @@ public class SouliteBudBlock extends AmethystBlock implements SimpleWaterloggedB
       {
          int newAge = getAge(blockState) + 1;
          BlockState newBlockState = defaultBlockState()
-                 .setValue(SouliteClusterBlock.FACING, getFacingDirection(blockState))
+                 .setValue(SouliteBudBlock.FACING, getFacingDirection(blockState))
                  .setValue(AGE, newAge);
 
          level.setBlockAndUpdate(pos, newBlockState);
