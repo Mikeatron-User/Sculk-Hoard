@@ -365,11 +365,11 @@ public class ModItems {
 		public void appendHoverText(ItemStack stack, Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
 			if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_SHIFT))
 			{
-				tooltip.add(Component.translatable("tooltip.sculkhorde.diascite.functionality"));
+				tooltip.add(Component.translatable("tooltip.sculkhorde.soul_animator.functionality"));
 			}
 			else if(InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL))
 			{
-				tooltip.add(Component.translatable("tooltip.sculkhorde.diascite.lore"));
+				tooltip.add(Component.translatable("tooltip.sculkhorde.soul_animator.lore"));
 			}
 			else
 			{

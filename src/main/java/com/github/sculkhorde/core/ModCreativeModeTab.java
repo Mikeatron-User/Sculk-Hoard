@@ -37,6 +37,7 @@ public class ModCreativeModeTab {
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.FERRISCITE.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.DIASCITE.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.SOUL_DISRUPTER.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.SOUL_ANIMATOR.get());
 
 
                 event.accept(ModItems.SCULK_SPORE_SPEWER_SPAWN_EGG.get());
