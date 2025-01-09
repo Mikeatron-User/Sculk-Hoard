@@ -15,10 +15,14 @@ import java.util.function.Predicate;
 
 public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> extends TargetGoal {
 
-    List<LivingEntity> possibleTargets;
+    protected List<LivingEntity> possibleTargets;
 
-    long lastTimeSinceTargetSearch = 0;
-    long targetSearchInterval = TickUnits.convertSecondsToTicks(2);
+    protected long lastTimeSinceTargetSearch = 0;
+    protected long targetSearchInterval = TickUnits.convertSecondsToTicks(2);
+
+    protected boolean ignoreFlyingTargets = true;
+
+    protected boolean ignoreSwimmingTargets = true;
 
     public NearestSculkOrSculkAllyEntityTargetGoal(Mob mobEntity, boolean mustSee, boolean mustReach)
     {
@@ -40,9 +44,23 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
         return this.mob.getBoundingBox().inflate(range, this.mob.getAttributeValue(Attributes.FOLLOW_RANGE), range);
     }
 
+    public NearestSculkOrSculkAllyEntityTargetGoal setIgnoreFlyingTargets(boolean value)
+    {
+        ignoreFlyingTargets = value;
+        return this;
+    }
+
+    public NearestSculkOrSculkAllyEntityTargetGoal setIgnoreSwimmingTargets(boolean value)
+    {
+        ignoreSwimmingTargets = value;
+        return this;
+    }
+
     protected boolean isEntityValidTarget(LivingEntity livingEntity)
     {
-        return EntityAlgorithms.isSculkLivingEntity.test(livingEntity) || EntityAlgorithms.isLivingEntityAllyToSculkHorde(livingEntity);
+        return (EntityAlgorithms.isSculkLivingEntity.test(livingEntity) || EntityAlgorithms.isLivingEntityAllyToSculkHorde(livingEntity))
+                && (ignoreFlyingTargets && EntityAlgorithms.getHeightOffGround(livingEntity) > 3)
+                && (ignoreSwimmingTargets && livingEntity.isSwimming());
     }
 
     public final Predicate<LivingEntity> isValidTarget = this::isEntityValidTarget;

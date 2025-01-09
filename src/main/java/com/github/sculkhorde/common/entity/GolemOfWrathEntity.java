@@ -168,7 +168,9 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
         Goal[] goals =
                 {
                         //HurtByTargetGoal(mob)
-                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true),
+                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true)
+                                .setIgnoreFlyingTargets(true)
+                                .setIgnoreSwimmingTargets(true),
                         new HurtByTargetGoal(this)
                 };
         return goals;
