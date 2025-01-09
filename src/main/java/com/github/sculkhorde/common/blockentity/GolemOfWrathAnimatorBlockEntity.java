@@ -51,8 +51,27 @@ public class GolemOfWrathAnimatorBlockEntity extends BlockEntity {
         super.saveAdditional(compoundNBT);
     }
 
+    public Optional<LivingEntity> getGolemAsLivingEntity()
+    {
+        if(golem.isPresent())
+        {
+            return Optional.of((LivingEntity) golem.get());
+        }
+
+        return Optional.empty();
+    }
+
     public Optional<IPurityGolemEntity> getGolem()
     {
+        // If golem is dead, set to null
+        if(getGolemAsLivingEntity().isPresent())
+        {
+            if(getGolemAsLivingEntity().get().isDeadOrDying())
+            {
+                golem = Optional.empty();
+            }
+        }
+
         return golem;
     }
 
@@ -67,9 +86,8 @@ public class GolemOfWrathAnimatorBlockEntity extends BlockEntity {
         IPurityGolemEntity golem = new GolemOfWrathEntity(getLevel());
         ((LivingEntity)golem).setPos(pos.getCenter());
         level.addFreshEntity((LivingEntity)golem);
-
         setGolem(golem);
-
+        getGolem().get().setBoundBlockPos(getBlockPos());
         return golem;
     }
 

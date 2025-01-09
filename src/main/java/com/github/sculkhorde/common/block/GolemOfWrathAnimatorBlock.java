@@ -88,7 +88,7 @@ public class GolemOfWrathAnimatorBlock extends BaseEntityBlock implements IForge
                 .mapColor(MapColor.COLOR_YELLOW)
                 .strength(HARDNESS, BLAST_RESISTANCE)
                 .noLootTable()
-                .sound(SoundType.ANCIENT_DEBRIS);
+                .sound(SoundType.AMETHYST);
         return prop;
     }
 

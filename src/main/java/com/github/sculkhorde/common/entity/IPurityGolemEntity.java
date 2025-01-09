@@ -6,7 +6,12 @@ import java.util.Optional;
 
 public interface IPurityGolemEntity {
 
+    boolean belongsToBoundBlock();
+    boolean isBoundBlockPresent();
+
     Optional<BlockPos> getBoundBlockPos();
+
+    void setBoundBlockPos(BlockPos pos);
 
     int getMaxDistanceFromBoundBlockBeforeDeath();
 

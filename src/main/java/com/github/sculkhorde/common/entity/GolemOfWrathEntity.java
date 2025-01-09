@@ -1,5 +1,6 @@
 package com.github.sculkhorde.common.entity;
 
+import com.github.sculkhorde.common.block.GolemOfWrathAnimatorBlock;
 import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
 import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
@@ -66,7 +67,8 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
     // Controls what types of entities this mob can target
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    BlockPos boundBlockPos = null;
+    protected BlockPos boundBlockPos = null;
+    protected boolean belongsToBoundBlock = false;
 
 
     public GolemOfWrathEntity(Level worldIn) {
@@ -193,11 +195,22 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
             removeEffect(ModMobEffects.CORRODED.get());
         }
 
-        // If we have a bound block, and we travel too far from it, just die.
-        if(getBoundBlockPos().isPresent() && BlockAlgorithms.getBlockDistance(blockPosition(), getBoundBlockPos().get()) > getMaxDistanceFromBoundBlockBeforeDeath())
+        // If we do not belong to a block, ignore
+        if(!belongsToBoundBlock())
+        {
+            return;
+        }
+        // If we are block bound, but it is destroyed, die
+        else if(!isBoundBlockPresent())
         {
             this.hurt(damageSources().genericKill(), Integer.MAX_VALUE);
         }
+        // If we are block bound, but we travel too far from it, just die.
+        else if(BlockAlgorithms.getBlockDistance(blockPosition(), getBoundBlockPos().get()) > getMaxDistanceFromBoundBlockBeforeDeath())
+        {
+            this.hurt(damageSources().genericKill(), Integer.MAX_VALUE);
+        }
+
     }
 
     @Override
@@ -211,8 +224,27 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
     }
 
     @Override
+    public boolean belongsToBoundBlock() {
+        return belongsToBoundBlock;
+    }
+
+    @Override
+    public boolean isBoundBlockPresent() {
+
+
+        return level().getBlockState(getBoundBlockPos().get()).getBlock() instanceof GolemOfWrathAnimatorBlock;
+    }
+
+    @Override
     public Optional<BlockPos> getBoundBlockPos() {
         return Optional.ofNullable(boundBlockPos);
+    }
+
+    @Override
+    public void setBoundBlockPos(BlockPos pos)
+    {
+        boundBlockPos = pos;
+        belongsToBoundBlock = true;
     }
 
     @Override
