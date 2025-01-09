@@ -276,6 +276,11 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
     protected void tellServerToSpawnCursorNextTick()
     {
+        if(level().isClientSide() || level().getServer() == null)
+        {
+            return;
+        }
+
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {
             // Spawn Block Traverser
             cursor = new CursorSurfaceInfectorEntity(level());
