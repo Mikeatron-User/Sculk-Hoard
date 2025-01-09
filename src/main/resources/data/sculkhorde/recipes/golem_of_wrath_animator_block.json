@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:crafting_shaped",
+
+  "pattern":
+  [
+    "BSB",
+    "PAP",
+    "BIB"
+  ],
+
+  "key":
+  {
+    "A":
+    {
+      "item": "sculkhorde:soul_animator"
+    },
+    "B":
+    {
+      "item": "sculkhorde:soulite_block"
+    },
+    "P":
+    {
+      "item": "sculkhorde:pure_souls"
+    },
+    "I":
+    {
+      "item": "sculkhorde:infestation_purifier"
+    },
+    "S":
+    {
+      "item": "minecraft:diamond_sword"
+    }
+  },
+
+  "result":
+  {
+    "item": "sculkhorde:golem_of_wrath_animator_block",
+    "count": 1
+  }
+}

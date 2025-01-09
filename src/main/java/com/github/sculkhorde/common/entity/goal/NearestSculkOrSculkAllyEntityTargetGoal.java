@@ -58,9 +58,17 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
 
     protected boolean isEntityValidTarget(LivingEntity livingEntity)
     {
-        return (EntityAlgorithms.isSculkLivingEntity.test(livingEntity) || EntityAlgorithms.isLivingEntityAllyToSculkHorde(livingEntity))
-                && (ignoreFlyingTargets && EntityAlgorithms.getHeightOffGround(livingEntity) > 3)
-                && (ignoreSwimmingTargets && livingEntity.isSwimming());
+        if(ignoreFlyingTargets && EntityAlgorithms.getHeightOffGround(livingEntity) > 3)
+        {
+            return false;
+        }
+
+        if(ignoreSwimmingTargets && livingEntity.isSwimming())
+        {
+            return false;
+        }
+
+        return EntityAlgorithms.isSculkHordeOrAllyEntity.test(livingEntity);
     }
 
     public final Predicate<LivingEntity> isValidTarget = this::isEntityValidTarget;

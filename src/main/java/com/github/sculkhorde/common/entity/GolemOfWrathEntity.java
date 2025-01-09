@@ -402,6 +402,12 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
                 for (LivingEntity entity : entities)
                 {
                     EntityAlgorithms.pushAwayEntitiesFromPosition(position(), entity, pushAwayStrength, pushUpStrength);
+                    CursorSurfacePurifierEntity cursor = new CursorSurfacePurifierEntity(entity.level());
+                    cursor.setPos(entity.position());
+                    cursor.setTickIntervalMilliseconds(10);
+                    cursor.setMaxLifeTimeMillis(TimeUnit.SECONDS.toMillis(60));
+                    cursor.setMaxTransformations(20);
+                    entity.level().addFreshEntity(cursor);
                 }
                 SoundUtil.playHostileSoundInLevel(level(), blockPosition(), SoundEvents.RAVAGER_ATTACK);
                 isAttackOver = true;
