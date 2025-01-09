@@ -3,6 +3,7 @@ package com.github.sculkhorde.common.entity;
 import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
 import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
+import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModMobEffects;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.EntityAlgorithms;
@@ -68,6 +69,11 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
     BlockPos boundBlockPos = null;
 
 
+    public GolemOfWrathEntity(Level worldIn) {
+        super(ModEntities.GOLEM_OF_WRATH.get(), worldIn);
+        this.setPathfindingMalus(BlockPathTypes.UNPASSABLE_RAIL, 0.0F);
+    }
+
     /**
      * The Constructor
      * @param type The Mob Type
@@ -77,6 +83,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
         super(type, worldIn);
         this.setPathfindingMalus(BlockPathTypes.UNPASSABLE_RAIL, 0.0F);
     }
+
     /**
      * Determines & registers the attributes of the mob.
      * @return The Attributes

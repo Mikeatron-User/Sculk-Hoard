@@ -86,6 +86,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("tendril_core_block_entity", () -> BlockEntityType.Builder.of(
                     TendrilCoreBlockEntity::new, ModBlocks.TENDRIL_CORE_BLOCK.get()).build(null));
 
+    public static RegistryObject<BlockEntityType<GolemOfWrathAnimatorBlockEntity>> GOLEM_OF_WRATH_ANIMATOR_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("golem_of_wrath_animator_block_entity", () -> BlockEntityType.Builder.of(
+                    GolemOfWrathAnimatorBlockEntity::new, ModBlocks.GOLEM_OF_WRATH_ANIMATOR_BLOCK.get()).build(null));
+
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }

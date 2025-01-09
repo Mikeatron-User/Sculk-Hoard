@@ -999,6 +999,9 @@ public class ModBlocks {
 	public static final RegistryObject<TendrilCoreBlock> TENDRIL_CORE_BLOCK =
 			registerBlock("tendril_core_block", TendrilCoreBlock::new);
 
+	public static final RegistryObject<GolemOfWrathAnimatorBlock> GOLEM_OF_WRATH_ANIMATOR_BLOCK =
+			registerBlock("golem_of_wrath_animator_block", GolemOfWrathAnimatorBlock::new);
+
 	static {
 		datagen(INFESTED_STONE_BRICKS);
 		datagen(INFESTED_MOSSY_STONE_BRICKS, "infested_stone_bricks");

@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 
 import java.util.Optional;
 
-public interface IPurityGolemEntity<LivingEntity> {
+public interface IPurityGolemEntity {
 
     Optional<BlockPos> getBoundBlockPos();
 
