@@ -19,7 +19,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.WaterAnimal;
@@ -27,18 +26,65 @@ import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public class EntityAlgorithms {
+
+    public static boolean isValidSpawnPosForEntity(LivingEntity entity, BlockPos pos)
+    {
+        if(BlockAlgorithms.isNotSolid((ServerLevel) entity.level(), pos.below()))
+        {
+            return false;
+        }
+
+        int entityHeight = (int) entity.getBbHeight();
+        int entityWidth = (int) entity.getBbWidth();
+        final int REQUIRED_CLEAR_BLOCKS_TO_SPAWN = 80;
+
+        int positiveCornerX = pos.getX() + (entityWidth / 2);
+        int positiveCornerY = pos.getY() + (entityHeight / 2);
+        int positiveCornerZ = pos.getZ() + (entityWidth / 2);
+
+        int negativeCornerX = pos.getX() + (entityWidth / 2) * -1;
+        int negativeCornerY = pos.getY() + (entityHeight / 2) * -1;
+        int negativeCornerZ = pos.getZ() + (entityWidth / 2) * -1;
+
+        float clearBlocksAmount = 0;
+        float obstructedBlocksAmount = 0;
+
+        for(int x = negativeCornerX; x <= positiveCornerX; x++)
+        {
+            for(int y = negativeCornerY; y <= positiveCornerY; y++)
+            {
+                for(int z = negativeCornerZ; x <= positiveCornerZ; z++)
+                {
+                    BlockPos currentBlockPos = new BlockPos(x, y, z);
+                    BlockState currentBlockState = entity.level().getBlockState(currentBlockPos);
+                    if(BlockAlgorithms.isReplaceableByWater(currentBlockState) || BlockAlgorithms.isReplaceable(currentBlockState))
+                    {
+                        clearBlocksAmount += 1;
+                    }
+                    else
+                    {
+                        obstructedBlocksAmount += 1;
+                    }
+                }
+            }
+        }
+
+        float clearBlocksPercentage = clearBlocksAmount / (clearBlocksAmount + obstructedBlocksAmount);
+
+        return clearBlocksPercentage >= REQUIRED_CLEAR_BLOCKS_TO_SPAWN;
+    }
 
     public static void pushAwayEntitiesFromPosition(Vec3 origin, LivingEntity entityToPush, float pushAwayStrength, float pushUpStrength)
     {
@@ -436,22 +482,7 @@ public class EntityAlgorithms {
         return false;
     }
 
-    public static void spawnEntitiesOnCircumference(ServerLevel level, Vec3 origin, int radius, int amount, EntityType<?> type)
-    {
-        ArrayList<Entity> entities = new ArrayList<Entity>();
-        ArrayList<Vec3> possibleSpawns = BlockAlgorithms.getPointsOnCircumferenceVec3(origin, radius, amount);
-        for(int i = 0; i < possibleSpawns.size(); i++)
-        {
-            Vec3 spawnPos = possibleSpawns.get(i);
-            Entity entity = type.create(level);
-            entity.setPos(spawnPos.x(), spawnPos.y(), spawnPos.z());
-            entities.add(entity);
-        }
 
-        for (Entity entity : entities) {
-            level.addFreshEntity(entity);
-        }
-    }
 
     public static Predicate<LivingEntity> isLivingEntity = new Predicate<LivingEntity>()
     {
@@ -499,18 +530,7 @@ public class EntityAlgorithms {
         }
     };
 
-    /**
-     * Gets all living entities in the given bounding box.
-     * @param serverLevel The given world
-     * @param boundingBox The given bounding box to search for a target
-     * @return A list of valid targets
-     */
-    public static List<LivingEntity> getLivingEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<LivingEntity> predicate)
-    {
-        List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, predicate);
-        return livingEntitiesInRange;
 
-    }
 
     /**
      * Gets all living entities in the given bounding box.
@@ -521,11 +541,7 @@ public class EntityAlgorithms {
     public static List<LivingEntity> getLivingEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
         List<LivingEntity> livingEntitiesInRange = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isLivingEntity);
-
-
-
         return livingEntitiesInRange;
-
     }
 
     public static List<Entity> getEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox, Predicate<Entity> predicate)
