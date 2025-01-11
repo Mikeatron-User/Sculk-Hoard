@@ -79,9 +79,9 @@ public class DepletedGolemOfWrathAnimatorBlock extends Block implements IForgeBl
     public InteractionResult use(BlockState blockState, Level level, BlockPos pos, Player playerIn, InteractionHand hand, BlockHitResult hitResult) {
 
 
-        boolean IsPureSouls = playerIn.getMainHandItem().is(ModItems.PURE_SOULS.get());
+        boolean isRepairItem = playerIn.getMainHandItem().is(ModItems.SOULITE_SHARD.get());
 
-        if(IsPureSouls)
+        if(isRepairItem)
         {
             // Only on client
             if(level.isClientSide())
