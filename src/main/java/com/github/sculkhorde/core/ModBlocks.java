@@ -1002,6 +1002,9 @@ public class ModBlocks {
 	public static final RegistryObject<GolemOfWrathAnimatorBlock> GOLEM_OF_WRATH_ANIMATOR_BLOCK =
 			registerBlock("golem_of_wrath_animator_block", GolemOfWrathAnimatorBlock::new);
 
+	public static final RegistryObject<DepletedGolemOfWrathAnimatorBlock> DEPLETED_GOLEM_OF_WRATH_ANIMATOR_BLOCK =
+			registerBlock("depleted_golem_of_wrath_animator_block", DepletedGolemOfWrathAnimatorBlock::new);
+
 	static {
 		datagen(INFESTED_STONE_BRICKS);
 		datagen(INFESTED_MOSSY_STONE_BRICKS, "infested_stone_bricks");

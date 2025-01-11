@@ -4,6 +4,7 @@ import com.github.sculkhorde.common.block.GolemOfWrathAnimatorBlock;
 import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
 import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
+import com.github.sculkhorde.core.ModBlocks;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModMobEffects;
 import com.github.sculkhorde.util.BlockAlgorithms;
@@ -226,13 +227,40 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
     }
 
     @Override
+    protected void tickDeath() {
+        super.tickDeath();
+
+        if(level().isClientSide())
+        {
+            return;
+        }
+
+        if(isBoundBlockPresent())
+        {
+            convertBoundBlockToDepleted();
+        }
+    }
+
+    @Override
+    public BlockState getDepletedBoundBlockState() {
+        return ModBlocks.DEPLETED_GOLEM_OF_WRATH_ANIMATOR_BLOCK.get().defaultBlockState();
+    }
+
+    @Override
+    public void convertBoundBlockToDepleted() {
+        if(isBoundBlockPresent())
+        {
+            level().setBlockAndUpdate(getBoundBlockPos().get(), getDepletedBoundBlockState());
+        }
+    }
+
+    @Override
     public boolean belongsToBoundBlock() {
         return belongsToBoundBlock;
     }
 
     @Override
     public boolean isBoundBlockPresent() {
-
 
         return level().getBlockState(getBoundBlockPos().get()).getBlock() instanceof GolemOfWrathAnimatorBlock;
     }

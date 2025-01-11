@@ -122,7 +122,7 @@ public class GolemOfWrathAnimatorBlockEntity extends BlockEntity {
             ((LivingEntity)golem).setPos(getBlockPos().above().getCenter());
         }
 
-        if(SculkHorde.isDebugMode()) {SculkHorde.LOGGER.info("Spawning Sculk Golem at " + ((LivingEntity) golem).position());}
+        if(SculkHorde.isDebugMode()) {SculkHorde.LOGGER.info("Spawning Golem at " + ((LivingEntity) golem).position());}
 
         level.addFreshEntity((LivingEntity)golem);
         setGolem(golem);
