@@ -492,11 +492,28 @@ public class EntityAlgorithms {
         }
     };
 
-    public static Predicate<LivingEntity> isSculkHordeOrAllyEntity = new Predicate<LivingEntity>()
+    public static Predicate<LivingEntity> isInfectionModEntity = new Predicate<LivingEntity>()
     {
         @Override
         public boolean test(LivingEntity livingEntity) {
-            return isSculkLivingEntity.test(livingEntity) || isLivingEntityAllyToSculkHorde(livingEntity);
+            return isSculkLivingEntity.test(livingEntity)
+                    || isLivingEntityAllyToSculkHorde(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToMIAllianceMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToSwarmInfectionMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToBulbusMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToDawnOfTheFloodMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToAnotherDimensionInvasionMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToDeeperAndDarkerMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToScapeAndRunParasitesMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToAbominationsInfectionMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToCompleteDistortionInfectionMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToEntomophobiaMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToSporeMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToPharyriosisParasiteInfectionMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToFromAnotherWorldMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToTheFleshThatHatesMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToWitheringAwayRebornMod(livingEntity)
+                    || ModColaborationHelper.doesEntityBelongToPrionInfectionMod(livingEntity);
         }
     };
 
@@ -568,9 +585,9 @@ public class EntityAlgorithms {
         return list;
     }
 
-    public static List<LivingEntity> getSculkHordeOrAllyEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
+    public static List<LivingEntity> getAllInfectionModEntitiesInBoundingBox(ServerLevel serverLevel, AABB boundingBox)
     {
-        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isSculkHordeOrAllyEntity);
+        List<LivingEntity> list = serverLevel.getEntitiesOfClass(LivingEntity.class, boundingBox, isInfectionModEntity);
         return list;
     }
 

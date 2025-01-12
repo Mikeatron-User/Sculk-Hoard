@@ -13,7 +13,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> extends TargetGoal {
+public class NearestInfectionModEntityTargetGoal<T extends LivingEntity> extends TargetGoal {
 
     protected List<LivingEntity> possibleTargets;
 
@@ -24,7 +24,7 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
 
     protected boolean ignoreSwimmingTargets = true;
 
-    public NearestSculkOrSculkAllyEntityTargetGoal(Mob mobEntity, boolean mustSee, boolean mustReach)
+    public NearestInfectionModEntityTargetGoal(Mob mobEntity, boolean mustSee, boolean mustReach)
     {
         super(mobEntity, mustSee, mustReach);
         this.setFlags(EnumSet.of(Flag.TARGET));
@@ -44,13 +44,13 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
         return this.mob.getBoundingBox().inflate(range, this.mob.getAttributeValue(Attributes.FOLLOW_RANGE), range);
     }
 
-    public NearestSculkOrSculkAllyEntityTargetGoal setIgnoreFlyingTargets(boolean value)
+    public NearestInfectionModEntityTargetGoal setIgnoreFlyingTargets(boolean value)
     {
         ignoreFlyingTargets = value;
         return this;
     }
 
-    public NearestSculkOrSculkAllyEntityTargetGoal setIgnoreSwimmingTargets(boolean value)
+    public NearestInfectionModEntityTargetGoal setIgnoreSwimmingTargets(boolean value)
     {
         ignoreSwimmingTargets = value;
         return this;
@@ -68,7 +68,7 @@ public class NearestSculkOrSculkAllyEntityTargetGoal<T extends LivingEntity> ext
             return false;
         }
 
-        return EntityAlgorithms.isSculkHordeOrAllyEntity.test(livingEntity);
+        return EntityAlgorithms.isInfectionModEntity.test(livingEntity);
     }
 
     public final Predicate<LivingEntity> isValidTarget = this::isEntityValidTarget;

@@ -2,7 +2,7 @@ package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.common.block.GolemOfWrathAnimatorBlock;
 import com.github.sculkhorde.common.entity.goal.CustomMeleeAttackGoal;
-import com.github.sculkhorde.common.entity.goal.NearestSculkOrSculkAllyEntityTargetGoal;
+import com.github.sculkhorde.common.entity.goal.NearestInfectionModEntityTargetGoal;
 import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
 import com.github.sculkhorde.core.ModBlocks;
 import com.github.sculkhorde.core.ModEntities;
@@ -165,7 +165,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
         Goal[] goals =
                 {
                         //HurtByTargetGoal(mob)
-                        new NearestSculkOrSculkAllyEntityTargetGoal<>(this, true, true)
+                        new NearestInfectionModEntityTargetGoal<>(this, true, true)
                                 .setIgnoreFlyingTargets(true)
                                 .setIgnoreSwimmingTargets(true),
                         new HurtByTargetGoal(this)
@@ -357,17 +357,22 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
         public void onTargetHurt(LivingEntity target)
         {
             AABB hitbox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(target.position(), 10);
-            List<LivingEntity> enemies = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(mob, (ServerLevel) mob.level(), hitbox);
+            List<LivingEntity> enemies = EntityAlgorithms.getAllInfectionModEntitiesInBoundingBox((ServerLevel) mob.level(), hitbox);
             for(LivingEntity entity : enemies)
             {
+                if(entity.getUUID().equals(GolemOfWrathEntity.this.getUUID()))
+                {
+                    continue;
+                }
                 entity.hurt(mob.damageSources().mobAttack(mob), GolemOfWrathEntity.ATTACK_DAMAGE);
+
+                CursorSurfacePurifierEntity cursor = new CursorSurfacePurifierEntity(mob.level());
+                cursor.setPos(target.position());
+                cursor.setTickIntervalMilliseconds(10);
+                cursor.setMaxLifeTimeMillis(TimeUnit.SECONDS.toMillis(60));
+                cursor.setMaxTransformations(20);
+                mob.level().addFreshEntity(cursor);
             }
-            CursorSurfacePurifierEntity cursor = new CursorSurfacePurifierEntity(mob.level());
-            cursor.setPos(target.position());
-            cursor.setTickIntervalMilliseconds(10);
-            cursor.setMaxLifeTimeMillis(TimeUnit.SECONDS.toMillis(60));
-            cursor.setMaxTransformations(20);
-            mob.level().addFreshEntity(cursor);
         }
     }
 
@@ -395,7 +400,7 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
             if (Math.abs(level().getGameTime() - timeOfLastCheck) >= CHECK_INTERVAL) {
                 timeOfLastCheck = level().getGameTime();
 
-                List<LivingEntity> hostiles = EntityAlgorithms.getSculkHordeOrAllyEntitiesInBoundingBox((ServerLevel) level(), getBoundingBox().inflate(7));
+                List<LivingEntity> hostiles = EntityAlgorithms.getAllInfectionModEntitiesInBoundingBox((ServerLevel) level(), getBoundingBox().inflate(7));
 
                 return hostiles.size() > 4;
             }
@@ -424,12 +429,17 @@ public class GolemOfWrathEntity extends PathfinderMob implements GeoEntity, IPur
             }
 
             if (Math.abs(level().getGameTime() - timeOfAttackStart) >= DAMAGE_DELAY) {
-                List<LivingEntity> entities = EntityAlgorithms.getEntitiesExceptOwnerInBoundingBox(GolemOfWrathEntity.this, (ServerLevel) level(), getBoundingBox().inflate(7));
+                List<LivingEntity> entities = EntityAlgorithms.getAllInfectionModEntitiesInBoundingBox((ServerLevel) level(), getBoundingBox().inflate(7));
                 float pushAwayStrength = 5f; // Increased push strength for better outwards effect
                 float pushUpStrength = 3f;   // Separate push up strength for vertical component.
 
                 for (LivingEntity entity : entities)
                 {
+                    if(entity.getUUID().equals(GolemOfWrathEntity.this.getUUID()))
+                    {
+                        continue;
+                    }
+
                     EntityAlgorithms.pushAwayEntitiesFromPosition(position(), entity, pushAwayStrength, pushUpStrength);
                     CursorSurfacePurifierEntity cursor = new CursorSurfacePurifierEntity(entity.level());
                     cursor.setPos(entity.position());
