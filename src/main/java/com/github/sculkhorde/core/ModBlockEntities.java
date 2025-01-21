@@ -90,6 +90,10 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("golem_of_wrath_animator_block_entity", () -> BlockEntityType.Builder.of(
                     GolemOfWrathAnimatorBlockEntity::new, ModBlocks.GOLEM_OF_WRATH_ANIMATOR_BLOCK.get()).build(null));
 
+    public static RegistryObject<BlockEntityType<BeeColonyCoreBlockEntity>> BEE_COLONY_CORE_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("bee_colony_core_block_entity", () -> BlockEntityType.Builder.of(
+                    BeeColonyCoreBlockEntity::new, ModBlocks.BEE_COLONY_CORE_BLOCK.get()).build(null));
+
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }
