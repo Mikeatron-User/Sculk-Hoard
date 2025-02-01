@@ -10,6 +10,7 @@ import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.ElementalBreez
 import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.ElementalFireMagicCircleAttackEntity;
 import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.ElementalIceMagicCircleAttackEntity;
 import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.ElementalPoisonMagicCircleAttackEntity;
+import com.github.sculkhorde.common.entity.dev.ChunkInfectEntity;
 import com.github.sculkhorde.common.entity.infection.*;
 import com.github.sculkhorde.common.entity.projectile.CustomItemProjectileEntity;
 import com.github.sculkhorde.common.entity.projectile.PurificationFlaskProjectileEntity;
@@ -80,6 +81,7 @@ public class ModEntities {
     public static final RegistryObject<EntityType<CursorPurifierProberEntity>> CURSOR_PURIFIER_PROBER = ENTITY_TYPES.register("cursor_purifier_prober", () -> EntityType.Builder.<CursorPurifierProberEntity>of(CursorPurifierProberEntity::new, MobCategory.MISC).sized(1f, 1f).clientTrackingRange(4).updateInterval(10).build("cursor_surface_purifier"));
     public static final RegistryObject<EntityType<InfestationPurifierEntity>> INFESTATION_PURIFIER = ENTITY_TYPES.register("infestation_purifier", () -> EntityType.Builder.<InfestationPurifierEntity>of(InfestationPurifierEntity::new, MobCategory.MISC).sized(1f, 1f).clientTrackingRange(4).updateInterval(10).build("infestation_purifier"));
     public static final RegistryObject<EntityType<AreaEffectSphericalCloudEntity>> AREA_EFFECT_SPHERICAL_CLOUD = ENTITY_TYPES.register("area_effect_spherical_cloud", () -> EntityType.Builder.<AreaEffectSphericalCloudEntity>of(AreaEffectSphericalCloudEntity::new, MobCategory.MISC).sized(1f, 1f).clientTrackingRange(4).updateInterval(10).build("area_effect_spherical_cloud"));
+    public static final RegistryObject<EntityType<ChunkInfectEntity>> CHUNK_INFECT_ENTITY = ENTITY_TYPES.register("chunk_infect_entity", () -> EntityType.Builder.<ChunkInfectEntity>of(ChunkInfectEntity::new, MobCategory.MISC).sized(1f, 1f).clientTrackingRange(4).updateInterval(10).build("chunk_infect_entity"));
 
     public static final RegistryObject<EntityType<SoulFireProjectileAttackEntity>> SOUL_FIRE_PROJECTILE = ENTITY_TYPES.register("soul_fire_projectile", () -> EntityType.Builder.<SoulFireProjectileAttackEntity>of(SoulFireProjectileAttackEntity::new, MobCategory.MISC).sized(0.9F, 0.9F).clientTrackingRange(4).updateInterval(4).build("soul_fire_projectile"));
     public static final RegistryObject<EntityType<SoulPoisonProjectileAttackEntity>> SOUL_POISON_PROJECTILE = ENTITY_TYPES.register("soul_poison_projectile", () -> EntityType.Builder.<SoulPoisonProjectileAttackEntity>of(SoulPoisonProjectileAttackEntity::new, MobCategory.MISC).sized(0.9F, 0.9F).clientTrackingRange(4).updateInterval(4).build("soul_poison_projectile"));

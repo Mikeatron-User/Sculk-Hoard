@@ -34,8 +34,8 @@ public class ModCommands {
                 .then(NodesStatusCommand.register(dispatcher, buildContext))
                 .then(VesselCommand.register(dispatcher, buildContext))
                 .then(ResetCommand.register(dispatcher, buildContext))
-                .then(SoulReaperCommand.register(dispatcher, buildContext));
-
+                .then(SoulReaperCommand.register(dispatcher, buildContext))
+                .then(DevCommand.register(dispatcher, buildContext));
         dispatcher.register(cmd);
     }
 }
