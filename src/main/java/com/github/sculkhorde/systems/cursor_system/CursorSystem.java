@@ -1,4 +1,4 @@
-package com.github.sculkhorde.systems;
+package com.github.sculkhorde.systems.cursor_system;
 
 import com.github.sculkhorde.common.entity.infection.CursorEntity;
 import com.github.sculkhorde.core.SculkHorde;

@@ -4,6 +4,7 @@ import com.github.sculkhorde.common.block.InfestationEntries.BlockInfestationTab
 import com.github.sculkhorde.common.loot.ModLootModifier;
 import com.github.sculkhorde.common.pools.PoolBlocks;
 import com.github.sculkhorde.systems.*;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
 import com.github.sculkhorde.systems.gravemind_system.*;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactory;
 import com.github.sculkhorde.systems.event_system.EventSystem;
