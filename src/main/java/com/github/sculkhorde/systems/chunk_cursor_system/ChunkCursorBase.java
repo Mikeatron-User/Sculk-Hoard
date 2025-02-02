@@ -103,38 +103,38 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             }
             return false;
         }
-        else {
-            if (startTime == 0) {
-                startTime = System.currentTimeMillis();
-            }
 
-            debug.info("Starting!");
-            //Tasks = new TaskHandler(serverLevel.getServer());
-            Tasks.schedule(1, this::run);
-
-            active = true;
-            tickMode = false;
-
-            debug.info("------ Settings Dump ------");
-            debug.info("    Server Level: " + serverLevel);
-            debug.info("    Center: " + center);
-            debug.info("    POS_1: " + pos1);
-            debug.info("    POS_2: " + pos2);
-            debug.info("    maxTicks: " + maxTicks);
-            debug.info("    blocksPerTick: " + blocksPerTick);
-            debug.info("    fadeDistance: " + fadeDistance);
-            debug.info("    caveMode: " + caveMode);
-            debug.info("    fillMode: " + fillMode);
-            debug.info("    solidFill: " + solidFill);
-            debug.info("    disableObstruction: " + disableObstruction);
-            debug.info("    doNotPlaceFeatures: " + doNotPlaceFeatures);
-
-            if (executeOnStart != null) {
-                debug.info("Executing the following command: " + executeOnStart);
-                executeOnStart.run();
-            }
-            return true;
+        if (startTime == 0) {
+            startTime = System.currentTimeMillis();
         }
+
+        debug.info("Starting!");
+        //Tasks = new TaskHandler(serverLevel.getServer());
+        Tasks.schedule(1, this::run);
+
+        active = true;
+        tickMode = false;
+
+        debug.info("------ Settings Dump ------");
+        debug.info("    Server Level: " + serverLevel);
+        debug.info("    Center: " + center);
+        debug.info("    POS_1: " + pos1);
+        debug.info("    POS_2: " + pos2);
+        debug.info("    maxTicks: " + maxTicks);
+        debug.info("    blocksPerTick: " + blocksPerTick);
+        debug.info("    fadeDistance: " + fadeDistance);
+        debug.info("    caveMode: " + caveMode);
+        debug.info("    fillMode: " + fillMode);
+        debug.info("    solidFill: " + solidFill);
+        debug.info("    disableObstruction: " + disableObstruction);
+        debug.info("    doNotPlaceFeatures: " + doNotPlaceFeatures);
+
+        if (executeOnStart != null) {
+            debug.info("Executing the following command: " + executeOnStart);
+            executeOnStart.run();
+        }
+        return true;
+
     }
 
     public void stop() {
@@ -405,48 +405,55 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     }
 
     protected void caver() {
-        if (caveMode) {
-            for (int i = 0; i < blocksPerTick; i++) {
-                if (currentBlock < topBlocks.size()) {
-                    BlockPos block = topBlocks.get(currentBlock);
-                    BlockPos highest = null;
+        if (!caveMode) {
+            completeTask();
+        }
 
-                    for (int y = block.getY(); y < serverLevel.getMaxBuildHeight(); y++) {
-                        BlockPos current = new BlockPos(block.getX(), y, block.getZ());
-                        boolean obstructed = isObstructed(serverLevel, current);
+        for (int i = 0; i < blocksPerTick; i++) {
 
-                        if (obstructed && highest != null) {
-                            break;
-                        }
-                        else if (!obstructed && canChange(serverLevel, current)) {
-                            highest = current;
-                        }
-                    }
+            // Check if we have finished
+            if (currentBlock >= topBlocks.size()) {
+                break;
+            }
+            BlockPos block = topBlocks.get(currentBlock);
+            BlockPos highest = null;
 
-                    if (highest == null) {
-                        topBlocks.set(currentBlock, new BlockPos(block.getX(), serverLevel.getMaxBuildHeight(), block.getZ()));
-                    }
-                    else {
-                        topBlocks.set(currentBlock, highest);
-                    }
+            // Find the highest block and set it to the topBlocks
+            for (int y = block.getY(); y < serverLevel.getMaxBuildHeight(); y++) {
+                BlockPos current = new BlockPos(block.getX(), y, block.getZ());
+                boolean obstructed = isObstructed(serverLevel, current);
 
-                    currentBlock++;
-                }
-                else {
+                // If we are obstructed and we have a highest block, break
+                if (obstructed && highest != null) {
                     break;
                 }
+                // If we are not obstructed and we canChance, set the highest block
+                else if (!obstructed && canChange(serverLevel, current)) {
+                    highest = current;
+                }
             }
 
-            if (currentBlock < topBlocks.size()) {
-                if (!tickMode) Tasks.schedule(1, this::run);
+            // If we have no highest block, set the topBlocks to the current block
+            if (highest == null) {
+                topBlocks.set(currentBlock, new BlockPos(block.getX(), serverLevel.getMaxBuildHeight(), block.getZ()));
             }
             else {
-                completeTask();
+                topBlocks.set(currentBlock, highest);
             }
+
+            currentBlock++;
         }
+
+        // If we haven't finished yet, schedule the next tick
+        if (currentBlock < topBlocks.size()) {
+            if (!tickMode) Tasks.schedule(1, this::run);
+        }
+        // Otherwise, complete the task
         else {
             completeTask();
         }
+
+
     }
 
     protected void init() {
@@ -484,6 +491,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
         int blocksChecked = 0;
 
+        // Iterate through the x and z coordinates
         for (int x = minX + xOffset; x <= maxX; x++) {
             for (int z = minZ + zOffset; z <= maxZ; z++) {
                 if (caveMode || fillMode) {
@@ -562,6 +570,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
                 fullDebug.info("    Current Y Pos: " + posY);
 
+                // If we are including adjacent blocks, check if we can add them
                 if (shouldRunAdjacent(serverLevel, posY)) {
                     BlockPos posY2 = posY.above();
                     for (int a = 0; a <= 2; a++) {
