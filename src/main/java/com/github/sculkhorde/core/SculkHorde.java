@@ -4,6 +4,7 @@ import com.github.sculkhorde.common.block.InfestationEntries.BlockInfestationTab
 import com.github.sculkhorde.common.loot.ModLootModifier;
 import com.github.sculkhorde.common.pools.PoolBlocks;
 import com.github.sculkhorde.systems.*;
+import com.github.sculkhorde.systems.chunk_cursor_system.ChunkInfestationSystem;
 import com.github.sculkhorde.systems.gravemind_system.*;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactory;
 import com.github.sculkhorde.systems.event_system.EventSystem;
@@ -60,6 +61,7 @@ public class SculkHorde {
     public static BeeNestActivitySystem beeNestActivitySystem;
 
     public static AutoPerformanceSystem autoPerformanceSystem;
+    public static ChunkInfestationSystem chunkInfestationSystem;
 
     //This is the instance of our class, and we register it to the ModEventBus (which I have stored in a variable).
     public SculkHorde()

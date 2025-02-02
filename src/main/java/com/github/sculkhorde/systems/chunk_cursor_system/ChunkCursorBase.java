@@ -555,7 +555,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
             if(currentBlock >= topBlocks.size())
             {
-                return;
+                break;
             }
 
 

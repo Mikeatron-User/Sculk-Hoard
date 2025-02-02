@@ -2,7 +2,6 @@ package com.github.sculkhorde.common.command;
 
 import com.github.sculkhorde.common.entity.dev.ChunkInfectEntity;
 import com.github.sculkhorde.core.SculkHorde;
-import com.github.sculkhorde.systems.chunk_cursor_system.ChunkCursorBase;
 import com.github.sculkhorde.systems.chunk_cursor_system.ChunkCursorInfector;
 import com.github.sculkhorde.systems.chunk_cursor_system.ChunkCursorPurifier;
 import com.mojang.brigadier.Command;
@@ -30,6 +29,9 @@ public class DevCommand implements Command<CommandSourceStack> {
     public static ArgumentBuilder<CommandSourceStack, ?> register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext buildContext) {
         defaults();
         return Commands.literal("dev")
+                .then(Commands.literal("test")
+                        .executes(DevCommand::test)
+                )
                 .then(Commands.literal("infect")
                         .then(Commands.literal("blocks")
                                 .then(Commands.literal("square")
@@ -172,6 +174,29 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .then(Commands.literal("help")
                         .executes(DevCommand::help)
                 );
+    }
+
+    private static int test(CommandContext<CommandSourceStack> context) {
+        BlockPos center = BlockPos.containing(context.getSource().getPosition());
+        ServerLevel level = context.getSource().getLevel();
+        int radius = 2;
+
+        ChunkCursorInfector infector = ChunkCursorInfector.of()
+                .chunkCenter(level, center, radius)
+                .caveMode(cave_mode)
+                .disableObstruction(disable_obstruction)
+                .solidFill(solid_fill)
+                .fillMode(fill)
+                .doNotPlaceFeatures(no_features)
+                .blocksPerTick(blocksPerTick)
+                .maxAdjacentBlocks(maxAdjacent)
+                .fadeDistance(fadeDistance);
+
+        infectors.add(infector);
+        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
+        infector.start();
+
+        return 0;
     }
 
     protected static ArrayList<ChunkCursorInfector> infectors = new ArrayList<>();

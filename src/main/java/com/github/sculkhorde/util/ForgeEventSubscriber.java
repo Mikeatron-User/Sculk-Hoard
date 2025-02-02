@@ -8,6 +8,7 @@ import com.github.sculkhorde.misc.StatisticsData;
 import com.github.sculkhorde.systems.AutoPerformanceSystem;
 import com.github.sculkhorde.systems.BeeNestActivitySystem;
 import com.github.sculkhorde.systems.SculkNodesSystem;
+import com.github.sculkhorde.systems.chunk_cursor_system.ChunkInfestationSystem;
 import com.github.sculkhorde.systems.event_system.EventSystem;
 import com.github.sculkhorde.systems.gravemind_system.Gravemind;
 import com.github.sculkhorde.systems.raid_system.RaidHandler;
@@ -67,6 +68,7 @@ public class ForgeEventSubscriber {
             SculkHorde.eventSystem = new EventSystem(); //Initialize Event Handler
             SculkHorde.beeNestActivitySystem = new BeeNestActivitySystem();
             SculkHorde.autoPerformanceSystem = new AutoPerformanceSystem();
+            SculkHorde.chunkInfestationSystem = new ChunkInfestationSystem();
             ModConfig.SERVER.loadItemsInfectionCursorsCanEat();
             ModConfig.SERVER.loadConfiguredInfestableBlocks();
 
@@ -109,6 +111,7 @@ public class ForgeEventSubscriber {
         SculkHorde.blockEntityChunkLoaderHelper.processBlockChunkLoadRequests();
         SculkHorde.entityChunkLoaderHelper.processEntityChunkLoadRequests();
         SculkHorde.beeNestActivitySystem.serverTick();
+        SculkHorde.chunkInfestationSystem.serverTick();
 
         if(ModConfig.isExperimentalFeaturesEnabled())
         {

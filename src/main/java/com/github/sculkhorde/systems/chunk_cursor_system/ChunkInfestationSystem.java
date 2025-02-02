@@ -4,36 +4,36 @@ import java.util.ArrayList;
 
 public class ChunkInfestationSystem {
 
-    protected static ArrayList<ChunkCursorInfector> chunkInfectors = new ArrayList<>();
-    protected static ArrayList<ChunkCursorPurifier> chunkPurifiers = new ArrayList<>();
+    protected ArrayList<ChunkCursorInfector> chunkInfectors = new ArrayList<>();
+    protected ArrayList<ChunkCursorPurifier> chunkPurifiers = new ArrayList<>();
 
 
-    public static void addChunkInfector(ChunkCursorInfector infector) {
+    public void addChunkInfector(ChunkCursorInfector infector) {
         chunkInfectors.add(infector);
     }
 
-    public static void addChunkPurifier(ChunkCursorPurifier purifier) {
+    public void addChunkPurifier(ChunkCursorPurifier purifier) {
         chunkPurifiers.add(purifier);
     }
 
-    public static void clearChunkInfectorList() {
+    public void clearChunkInfectorList() {
         chunkInfectors.clear();
     }
 
-    public static void clearChunkPurifierList() {
+    public void clearChunkPurifierList() {
         chunkPurifiers.clear();
     }
 
-    public static void clearChunkInfectorAndPurifierLists() {
+    public void clearChunkInfectorAndPurifierLists() {
         chunkInfectors.clear();
         chunkPurifiers.clear();
     }
 
-    public static ArrayList<ChunkCursorInfector> getChunkInfectors() {
+    public ArrayList<ChunkCursorInfector> getChunkInfectors() {
         return chunkInfectors;
     }
 
-    public static ArrayList<ChunkCursorPurifier> getChunkPurifiers() {
+    public ArrayList<ChunkCursorPurifier> getChunkPurifiers() {
         return chunkPurifiers;
     }
 
@@ -43,8 +43,10 @@ public class ChunkInfestationSystem {
         chunkPurifiers.removeIf(ChunkCursorPurifier::isFinished);
     }
 
-    public void tick()
+    public void serverTick()
     {
+        cleanupFinishedChunkCursors();
+
         for(ChunkCursorInfector infector : chunkInfectors)
         {
             infector.tick();
