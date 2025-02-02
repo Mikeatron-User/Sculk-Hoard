@@ -4,7 +4,6 @@ package com.github.sculkhorde.systems.chunk_cursor_system;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.Log;
-import com.github.sculkhorde.util.TaskHandler;
 import com.github.sculkhorde.util.Tasks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -537,94 +536,98 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         ArrayList<BlockPos> adjacentBlocks = new ArrayList<>();
 
         for (int i = 0; i < blocksPerTick; i++) {
-            if (currentBlock < topBlocks.size()) {
-                // for (int y = topBlocks.get(currentBatch).getY(); y > lowestY;  y--) {
 
-                BlockPos pos = topBlocks.get(currentBlock);
-                int maxY = fillMode ? pos.getY() - areaLowestY : pos.getY() - lowestY;
+            if(currentBlock >= topBlocks.size())
+            {
+                return;
+            }
 
-                fullDebug.info("Current Top Position: " + pos + " | Max Y: " + maxY);
 
-                boolean addedN = false;
-                boolean addedE = false;
-                boolean addedS = false;
-                boolean addedW = false;
+            // for (int y = topBlocks.get(currentBatch).getY(); y > lowestY;  y--) {
 
-                for (int y = 0; y < maxY; y++) {
-                    BlockPos posY = pos.below(y);
-                    blocksChecked++;
+            BlockPos pos = topBlocks.get(currentBlock);
+            int maxY = fillMode ? pos.getY() - areaLowestY : pos.getY() - lowestY;
 
-                    fullDebug.info("    Current Y Pos: " + posY);
+            fullDebug.info("Current Top Position: " + pos + " | Max Y: " + maxY);
 
-                    if (shouldRunAdjacent(serverLevel, posY)) {
-                        BlockPos posY2 = posY.above();
-                        for (int a = 0; a <= 2; a++) {
+            boolean addedN = false;
+            boolean addedE = false;
+            boolean addedS = false;
+            boolean addedW = false;
 
-                            BlockPos posN = posY2.north();
-                            BlockPos posE = posY2.east();
-                            BlockPos posS = posY2.south();
-                            BlockPos posW = posY2.west();
+            for (int y = 0; y < maxY; y++)
+            {
+                BlockPos posY = pos.below(y);
+                blocksChecked++;
 
-                            if (boundingBox.contains(posN.getCenter()) && !isObstructed(serverLevel, posN) && canChange(serverLevel, posN) && !addedN) {
-                                adjacentBlocks.add(posN);
-                                addedN = true;
-                                totalExtraBlocks++;
-                            }
-                            if (boundingBox.contains(posE.getCenter()) && !isObstructed(serverLevel, posE) && canChange(serverLevel, posE) && !addedE) {
-                                adjacentBlocks.add(posE);
-                                addedE = true;
-                                totalExtraBlocks++;
-                            }
-                            if (boundingBox.contains(posS.getCenter()) && !isObstructed(serverLevel, posS) && canChange(serverLevel, posS) && !addedS) {
-                                adjacentBlocks.add(posS);
-                                addedS = true;
-                                totalExtraBlocks++;
-                            }
-                            if (boundingBox.contains(posW.getCenter()) && !isObstructed(serverLevel, posW) && canChange(serverLevel, posW) && !addedW) {
-                                adjacentBlocks.add(posW);
-                                addedW = true;
-                                totalExtraBlocks++;
-                            }
+                fullDebug.info("    Current Y Pos: " + posY);
 
-                            posY2 = (a==1) ? posY.above(2) : posY2.below();
+                if (shouldRunAdjacent(serverLevel, posY)) {
+                    BlockPos posY2 = posY.above();
+                    for (int a = 0; a <= 2; a++) {
+
+                        BlockPos posN = posY2.north();
+                        BlockPos posE = posY2.east();
+                        BlockPos posS = posY2.south();
+                        BlockPos posW = posY2.west();
+
+                        if (boundingBox.contains(posN.getCenter()) && !isObstructed(serverLevel, posN) && canChange(serverLevel, posN) && !addedN) {
+                            adjacentBlocks.add(posN);
+                            addedN = true;
+                            totalExtraBlocks++;
                         }
-                    }
+                        if (boundingBox.contains(posE.getCenter()) && !isObstructed(serverLevel, posE) && canChange(serverLevel, posE) && !addedE) {
+                            adjacentBlocks.add(posE);
+                            addedE = true;
+                            totalExtraBlocks++;
+                        }
+                        if (boundingBox.contains(posS.getCenter()) && !isObstructed(serverLevel, posS) && canChange(serverLevel, posS) && !addedS) {
+                            adjacentBlocks.add(posS);
+                            addedS = true;
+                            totalExtraBlocks++;
+                        }
+                        if (boundingBox.contains(posW.getCenter()) && !isObstructed(serverLevel, posW) && canChange(serverLevel, posW) && !addedW) {
+                            adjacentBlocks.add(posW);
+                            addedW = true;
+                            totalExtraBlocks++;
+                        }
 
-                    if (solidFill) {
-                        if (canChange(serverLevel, posY)) {
-                            changeBlock(serverLevel, posY);
-                            blocksChanged++;
-                        }
-                        else if (canConsume(serverLevel, posY)) {
-                            consumeBlock(serverLevel, posY);
-                            blocksChanged++;
-                        }
-                    }
-                    else if (isObstructed(serverLevel, posY) && !disableObstruction && !fillMode) {
-                        fullDebug.info("    OBSTRUCTED!");
-                        break;
-                    }
-                    else {
-                        if (canChange(serverLevel, posY)) {
-                            changeBlock(serverLevel, posY);
-                            blocksChanged++;
-                        }
-                        else if (canConsume(serverLevel, posY)) {
-                            consumeBlock(serverLevel, posY);
-                            blocksChanged++;
-                        }
+                        posY2 = (a==1) ? posY.above(2) : posY2.below();
                     }
                 }
 
-                currentBlock++;
-
-                if (blocksChecked > blocksPerTick*2) {
+                if (solidFill) {
+                    if (canChange(serverLevel, posY)) {
+                        changeBlock(serverLevel, posY);
+                        blocksChanged++;
+                    }
+                    else if (canConsume(serverLevel, posY)) {
+                        consumeBlock(serverLevel, posY);
+                        blocksChanged++;
+                    }
+                }
+                else if (isObstructed(serverLevel, posY) && !disableObstruction && !fillMode) {
+                    fullDebug.info("    OBSTRUCTED!");
                     break;
                 }
+                else {
+                    if (canChange(serverLevel, posY)) {
+                        changeBlock(serverLevel, posY);
+                        blocksChanged++;
+                    }
+                    else if (canConsume(serverLevel, posY)) {
+                        consumeBlock(serverLevel, posY);
+                        blocksChanged++;
+                    }
+                }
             }
-            else {
+
+            currentBlock++;
+
+            if (blocksChecked > blocksPerTick*2) {
                 break;
             }
+
         }
 
         if (maxExtraBlocks > 0) {
