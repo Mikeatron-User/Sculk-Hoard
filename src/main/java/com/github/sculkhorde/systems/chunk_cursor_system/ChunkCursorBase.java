@@ -55,6 +55,8 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     private int maxTicksWarning;
     private boolean warningTriggered = false;
 
+    private boolean isFinished = false;
+
 
     // Utilised during runtime
     private final ArrayList<BlockPos> topBlocks = new ArrayList<>();
@@ -84,6 +86,11 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     }
 
     public ChunkCursorBase() {initDefaults();}
+
+    public boolean isFinished()
+    {
+        return isFinished;
+    }
 
     // Control Functions -----------------------------------------------------------------------------------------------
     public void tick() {
@@ -358,6 +365,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         debug.info("Complete! | Total Time Taken: " + ChunkCursorHelper.textTime(totalTime) +  " | Ticks: " + totalTicks);
 
         active = false;
+        isFinished = true;
         clear();
     }
 
