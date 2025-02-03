@@ -1,10 +1,12 @@
 package com.github.sculkhorde.systems.cursor_system;
 
+import com.github.sculkhorde.common.entity.infection.CursorSurfacePurifierEntity;
 import com.github.sculkhorde.core.ModBlocks;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.BlockInfestationSystem;
 import com.github.sculkhorde.util.BlockAlgorithms;
+import com.github.sculkhorde.util.EntityAlgorithms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -12,8 +14,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.AABB;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.function.Predicate;
 
 import static com.github.sculkhorde.util.BlockAlgorithms.isExposedToInfestationWardBlock;
 
@@ -22,6 +28,7 @@ public class VirtualSurfaceInfestorCursor extends VirtualCursor{
     public VirtualSurfaceInfestorCursor(Level level)
     {
         super(level);
+        cursorType = CursorType.INFESTOR;
     }
 
 
@@ -44,6 +51,18 @@ public class VirtualSurfaceInfestorCursor extends VirtualCursor{
     protected void transformBlock(BlockPos pos)
     {
         BlockInfestationSystem.tryToInfestBlock((ServerLevel) getLevel(), pos);
+
+        // Get all infector cursor entities in area and kill them
+        Predicate<CursorSurfacePurifierEntity> isCursor = Objects::nonNull;
+        AABB searchBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(getBlockPosition().getCenter(),5);
+        List<CursorSurfacePurifierEntity> cursors = getLevel().getEntitiesOfClass(CursorSurfacePurifierEntity.class, searchBox, isCursor);
+        for(CursorSurfacePurifierEntity cursor : cursors)
+        {
+            // Essentially kill it by taking away it's transformations.
+            cursor.setMaxTransformations(0);
+            setToBeDeleted();
+            break;
+        }
     }
 
     /**
