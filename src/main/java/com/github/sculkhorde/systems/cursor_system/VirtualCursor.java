@@ -1,7 +1,5 @@
 package com.github.sculkhorde.systems.cursor_system;
 
-import com.github.sculkhorde.common.entity.infection.CursorEntity;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.util.BlockAlgorithms;
@@ -11,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -19,16 +16,27 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-public class VirtualCursor {
+public class VirtualCursor implements ICursor{
 
-    // Simulated Physical Properties
-    Level level;
-    BlockPos pos;
+    // Physical Properties ---------------------------------------------------------------------------------------------
+    protected Level level;
+    protected BlockPos pos;
+    protected boolean toBeDeleted = false;
 
-    protected enum State
+    UUID uuid = createUUID();
+
+    // Transformation Properties ---------------------------------------------------------------------------------------
+    protected int MAX_TRANSFORMATIONS = 100;
+    protected int currentTransformations = 0;
+    protected int MAX_RANGE = 20;
+    protected long MAX_LIFETIME_TICKS = TickUnits.convertMinutesToTicks(5);
+    protected long creationTickTime = 0;
+    protected long lastTickTime = 0;
+
+    // Tick Properties -------------------------------------------------------------------------------------------------
+    public enum State
     {
         IDLE,
         SEARCHING,
@@ -36,40 +44,69 @@ public class VirtualCursor {
         FINISHED
     }
 
-
     protected State state = State.IDLE;
 
-    protected int MAX_TRANSFORMATIONS = 100;
-    protected int currentTransformations = 0;
-    protected int MAX_RANGE = 20;
-    protected long MAX_LIFETIME_MILLIS = TimeUnit.SECONDS.toMillis(60 * 5);
-    protected long creationTickTime = System.currentTimeMillis();
-    protected long lastTickTime = 0;
+    public enum CursorType
+    {
+        INFESTOR,
+        PURIFIER
+    }
+
+    protected CursorType cursorType = CursorType.INFESTOR;
 
     protected long ticksRemainingBeforeCheckingIfInCursorList = 0;
     protected final long CHECK_DELAY_TICKS = TickUnits.convertSecondsToTicks(5);
     protected boolean canBeManuallyTicked = true;
 
     protected int searchIterationsPerTick = 20;
-    protected long tickIntervalMilliseconds = 1000;
+    protected long tickIntervalTicks = TickUnits.convertSecondsToTicks(1);
 
+    // Search Properties -----------------------------------------------------------------------------------------------
     protected BlockPos origin = BlockPos.ZERO;
     protected BlockPos target = BlockPos.ZERO;
     protected HashMap<Long, Boolean> positionsSearched = new HashMap<>();
     Queue<BlockPos> searchQueue = new LinkedList<>();
     public boolean isSuccessful = false;
 
-    //Create a hash map to store all visited nodes
-    protected HashMap<Long, Boolean> visitedPositons = new HashMap<>();
+    protected HashMap<Long, Boolean> visitedPositions = new HashMap<>();
 
-    // Client Side Particle Spawning
+    // Particle Properties ---------------------------------------------------------------------------------------------
     protected int PARTICLE_SPAWN_COOLDOWN = TickUnits.convertSecondsToTicks(2);
     protected int ticksSinceLastParticleSpawn = PARTICLE_SPAWN_COOLDOWN;
 
 
     public VirtualCursor(Level level) {
-        super(level);
+        this.level = level;
         creationTickTime = System.currentTimeMillis();
+    }
+
+    @Override
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    @Override
+    public void setToBeDeleted() {
+        toBeDeleted = true;
+    }
+
+    @Override
+    public boolean isSetToBeDeleted() {
+        return toBeDeleted;
+    }
+
+    @Override
+    public void moveTo(double x, double y, double z) {
+        this.pos = new BlockPos((int) x, (int) y, (int) z);
+    }
+    public Level getLevel()
+    {
+        return level;
+    }
+
+    public BlockPos getBlockPosition()
+    {
+        return pos;
     }
 
     public void setMaxTransformations(int MAX_INFECTIONS) {
@@ -80,23 +117,23 @@ public class VirtualCursor {
         this.MAX_RANGE = MAX_RANGE;
     }
 
-    public void setMaxLifeTimeMillis(long MAX_LIFETIME) {
-        this.MAX_LIFETIME_MILLIS = MAX_LIFETIME;
+    public void setMaxLifeTimeTicks(long ticks) {
+        this.MAX_LIFETIME_TICKS = ticks;
     }
 
     public void setSearchIterationsPerTick(int iterations) {
         this.searchIterationsPerTick = iterations;
     }
 
-    public void setTickIntervalMilliseconds(long milliseconds) {
-        this.tickIntervalMilliseconds = milliseconds;
+    public void setTickIntervalTicks(long ticks) {
+        this.tickIntervalTicks = ticks;
     }
 
     public void setCanBeManuallyTicked(boolean value) { canBeManuallyTicked = value; }
 
     public boolean canBeManuallyTicked() { return canBeManuallyTicked; }
 
-    public void setState(CursorEntity.State state)
+    public void setState(State state)
     {
         this.state = state;
     }
@@ -124,7 +161,7 @@ public class VirtualCursor {
             return true;
         }
         // This is to prevent the entity from getting stuck in a loop
-        else if(visitedPositons.containsKey(pos.asLong()))
+        else if(visitedPositions.containsKey(pos.asLong()))
         {
             return true;
         }
@@ -147,7 +184,7 @@ public class VirtualCursor {
      */
     protected void transformBlock(BlockPos pos)
     {
-        level().setBlockAndUpdate(pos, Blocks.DIAMOND_BLOCK.defaultBlockState());
+        getLevel().setBlockAndUpdate(pos, Blocks.DIAMOND_BLOCK.defaultBlockState());
     }
 
     protected void spawnParticleEffects()
@@ -164,7 +201,7 @@ public class VirtualCursor {
     protected void addPositionToQueueIfValid(BlockPos pos)
     {
         boolean isPositionNotVisited = !positionsSearched.containsKey(pos.asLong());
-        BlockState neighborBlockState = level().getBlockState(pos);
+        BlockState neighborBlockState = getLevel().getBlockState(pos);
         boolean isPositionNotObstructed = !isObstructed(neighborBlockState, pos);
 
         // If not visited and is a valid block to navigate
@@ -216,13 +253,13 @@ public class VirtualCursor {
     public void exploreTick()
     {
         // Get Neighbors of Each Block
-        ArrayList<BlockPos> neighbors = BlockAlgorithms.getNeighborsCube(this.blockPosition(), false);
+        ArrayList<BlockPos> neighbors = BlockAlgorithms.getNeighborsCube(this.getBlockPosition(), false);
         // Create a new list to store unobstructed neighbors
         ArrayList<BlockPos> unobstructedNeighbors = new ArrayList<>();
         // Check each neighbor for obstructions and add unobstructed neighbors to the new list
         for (BlockPos neighbor : neighbors)
         {
-            if (!isObstructed(level().getBlockState(neighbor), neighbor)) {
+            if (!isObstructed(getLevel().getBlockState(neighbor), neighbor)) {
                 unobstructedNeighbors.add(neighbor);
             }
         }
@@ -243,31 +280,31 @@ public class VirtualCursor {
 
 
         // Move to the closest block
-        this.setPos(closest.getX() + 0.5, closest.getY(), closest.getZ() + 0.5);
+        this.moveTo(closest.getX(), closest.getY(), closest.getZ());
 
         // If we've reached the target block, find a new target
-        if (this.blockPosition().equals(target))
+        if (getBlockPosition().equals(target))
         {
             target = BlockPos.ZERO;
-            BlockState stateOfCurrentBlock = level().getBlockState(this.blockPosition());
+            BlockState stateOfCurrentBlock = getLevel().getBlockState(getBlockPosition());
 
-            boolean isTarget = isTarget(this.blockPosition());
-            boolean isNotObstructed = !isObstructed(stateOfCurrentBlock, this.blockPosition());
+            boolean isTarget = isTarget(getBlockPosition());
+            boolean isNotObstructed = !isObstructed(stateOfCurrentBlock, getBlockPosition());
             // If the block is not obstructed, infect it
             if(isTarget && isNotObstructed)
             {
                 // Infect the block and increase the infection count
-                transformBlock(this.blockPosition());
+                transformBlock(getBlockPosition());
                 currentTransformations++;
             }
 
-            setState(CursorEntity.State.SEARCHING);
+            setState(State.SEARCHING);
             resetSearchTick();
-            searchQueue.add(this.blockPosition());
+            searchQueue.add(getBlockPosition());
         }
 
         // Mark position as visited
-        visitedPositons.put(closest.asLong(), true);
+        visitedPositions.put(closest.asLong(), true);
     }
     private final Predicate<Entity> IS_DROPPED_ITEM = (entity) ->
     {
@@ -277,33 +314,33 @@ public class VirtualCursor {
     public void cursorTick()
     {
         float timeElapsedMilliSeconds = System.currentTimeMillis() - lastTickTime;
-        double tickIntervalMillisecondsAfterMultiplier;
+        double tickIntervalAfterMultiplier;
 
-        if(this instanceof CursorSurfaceInfectorEntity)
+        if(cursorType == CursorType.INFESTOR)
         {
-            tickIntervalMillisecondsAfterMultiplier = tickIntervalMilliseconds / ModConfig.SERVER.infection_speed_multiplier.get();
+            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.infection_speed_multiplier.get();
         }
         else
         {
-            tickIntervalMillisecondsAfterMultiplier = tickIntervalMilliseconds / ModConfig.SERVER.purification_speed_multiplier.get();
+            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.purification_speed_multiplier.get();
         }
 
-        if (timeElapsedMilliSeconds < Math.max(tickIntervalMillisecondsAfterMultiplier, 1)) {
+        if (timeElapsedMilliSeconds < Math.max(tickIntervalAfterMultiplier, 1)) {
             return;
         }
 
-        lastTickTime = System.currentTimeMillis();
+        lastTickTime = getLevel().getGameTime();
 
         // Keep track of the origin
         if (origin == BlockPos.ZERO)
         {
-            origin = this.blockPosition();
+            origin = getBlockPosition();
         }
 
-        if(this.random.nextFloat() <= 0.1 && this instanceof CursorSurfaceInfectorEntity)
+        if(getLevel().random.nextFloat() <= 0.1 && cursorType == CursorType.INFESTOR)
         {
-            AABB boundingBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(blockPosition().getCenter(), 20);
-            List<Entity> entities = EntityAlgorithms.getEntitiesInBoundingBox((ServerLevel) this.level(), boundingBox, IS_DROPPED_ITEM);
+            AABB boundingBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(getBlockPosition().getCenter(), 20);
+            List<Entity> entities = EntityAlgorithms.getEntitiesInBoundingBox((ServerLevel) getLevel(), boundingBox, IS_DROPPED_ITEM);
             for(Entity entity : entities)
             {
                 if(!ModConfig.SERVER.isItemEdibleToCursors((ItemEntity) entity))
@@ -317,25 +354,25 @@ public class VirtualCursor {
             }
         }
 
-        long currentLifeTimeMilliseconds = System.currentTimeMillis() - creationTickTime;
+        long currentLifeTimeTicks = getLevel().getGameTime() - creationTickTime;
 
         // Convert to seconds
         // If entity has lived too long, remove it
-        if (currentLifeTimeMilliseconds >= MAX_LIFETIME_MILLIS)
+        if (currentLifeTimeTicks >= MAX_LIFETIME_TICKS)
         {
-            setState(CursorEntity.State.FINISHED);
+            setState(State.FINISHED);
         }
         else if (currentTransformations >= MAX_TRANSFORMATIONS)
         {
-            setState(CursorEntity.State.FINISHED);
+            setState(State.FINISHED);
         }
 
-        if(state == CursorEntity.State.IDLE)
+        if(state == State.IDLE)
         {
-            searchQueue.add(this.blockPosition());
-            setState(CursorEntity.State.SEARCHING);
+            searchQueue.add(getBlockPosition());
+            setState(State.SEARCHING);
         }
-        else if (state == CursorEntity.State.SEARCHING)
+        else if (state == State.SEARCHING)
         {
 
             // IF not complete, just return;
@@ -346,30 +383,28 @@ public class VirtualCursor {
 
             // If we can't find a target, finish
             if (target.equals(BlockPos.ZERO)) {
-                setState(state = CursorEntity.State.FINISHED);
+                setState(state = State.FINISHED);
             }
             else // If we find target, start infecting
             {
-                setState(state = CursorEntity.State.EXPLORING);
-                visitedPositons.clear();
+                setState(state = State.EXPLORING);
+                visitedPositions.clear();
             }
         }
-        else if (state == CursorEntity.State.EXPLORING)
+        else if (state == State.EXPLORING)
         {
             exploreTick();
         }
-        else if (state == CursorEntity.State.FINISHED)
+        else if (state == State.FINISHED)
         {
-            this.remove(Entity.RemovalReason.DISCARDED);
+            setToBeDeleted();
         }
     }
 
-    @Override
     public void tick() {
-        super.tick();
 
         // Play Particles on Client
-        if (this.level() != null && this.level().isClientSide)
+        if (getLevel() != null && getLevel().isClientSide)
         {
             ticksSinceLastParticleSpawn += 1;
             if(ticksSinceLastParticleSpawn >= PARTICLE_SPAWN_COOLDOWN)
@@ -385,7 +420,7 @@ public class VirtualCursor {
 
             if(ticksRemainingBeforeCheckingIfInCursorList <= 0)
             {
-                SculkHorde.cursorSystem.computeIfAbsent(this);
+                SculkHorde.cursorSystem.computeIfAbsentVirtualCursor(this);
                 ticksRemainingBeforeCheckingIfInCursorList = CHECK_DELAY_TICKS;
             }
         }
@@ -404,22 +439,17 @@ public class VirtualCursor {
         this.target = target;
     }
 
-    @Override
-    public void onRemovedFromWorld() {
-        if(level().isClientSide()) { return; }
-    }
-
     public void chanceToThanosSnapThisCursor()
     {
-        if(level().isClientSide()) { return; }
+        if(getLevel().isClientSide()) { return; }
 
         if(SculkHorde.autoPerformanceSystem.isThanosSnappingCursors())
         {
-            ServerLevel serverLevel = (ServerLevel) level();
+            ServerLevel serverLevel = (ServerLevel) getLevel();
             MinecraftServer server = serverLevel.getServer();
             if(serverLevel.random.nextBoolean())
             {
-                server.tell(new net.minecraft.server.TickTask(level().getServer().getTickCount() + 1, this::discard));
+                //server.tell(new net.minecraft.server.TickTask(getLevel().getServer().getTickCount() + 1, this::discard));
             }
         }
     }
