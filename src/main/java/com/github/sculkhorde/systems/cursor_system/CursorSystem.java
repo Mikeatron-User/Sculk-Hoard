@@ -87,7 +87,7 @@ public class CursorSystem {
 
     public void computeIfAbsentVirtualCursor(ICursor entity)
     {
-        if(virtualCursors.getIndexOfCursor((CursorEntity) entity).isEmpty())
+        if(virtualCursors.getIndexOfCursor(entity).isEmpty())
         {
             addVirtualCursor(entity);
         }
@@ -118,7 +118,7 @@ public class CursorSystem {
                 continue;
             }
 
-            cursorAtIndex.moveTo(cursorAtIndex.getUUID().getMostSignificantBits(), cursorAtIndex.getUUID().getLeastSignificantBits(), cursorAtIndex.getUUID().getLeastSignificantBits());
+            cursorAtIndex.tick();
 
             virtualCursorIndex++;
         }
@@ -353,7 +353,7 @@ public class CursorSystem {
          * @param entity The Cursor Entity
          * @return The potential position of the cursor in the list.
          */
-        public Optional<Integer> getIndexOfCursor(CursorEntity entity) {
+        public Optional<Integer> getIndexOfCursor(ICursor entity) {
             // We use the UUID to compare Cursor Entities
             UUID uuid = entity.getUUID();
 

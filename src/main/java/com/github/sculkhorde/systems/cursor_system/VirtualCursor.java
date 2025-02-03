@@ -77,7 +77,7 @@ public class VirtualCursor implements ICursor{
 
     public VirtualCursor(Level level) {
         this.level = level;
-        creationTickTime = System.currentTimeMillis();
+        creationTickTime = level.getGameTime();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class VirtualCursor implements ICursor{
      */
     protected boolean isTarget(BlockPos pos)
     {
-        return false;
+        return !getLevel().getBlockState(pos).is(Blocks.DIAMOND_BLOCK);
     }
 
     /**
@@ -313,7 +313,7 @@ public class VirtualCursor implements ICursor{
 
     public void cursorTick()
     {
-        float timeElapsedMilliSeconds = System.currentTimeMillis() - lastTickTime;
+        float timeElapsedTicks = getLevel().getGameTime() - lastTickTime;
         double tickIntervalAfterMultiplier;
 
         if(cursorType == CursorType.INFESTOR)
@@ -325,7 +325,7 @@ public class VirtualCursor implements ICursor{
             tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.purification_speed_multiplier.get();
         }
 
-        if (timeElapsedMilliSeconds < Math.max(tickIntervalAfterMultiplier, 1)) {
+        if (timeElapsedTicks < Math.max(tickIntervalAfterMultiplier, 1)) {
             return;
         }
 
@@ -401,6 +401,7 @@ public class VirtualCursor implements ICursor{
         }
     }
 
+    @Override
     public void tick() {
 
         // Play Particles on Client

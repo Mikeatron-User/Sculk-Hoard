@@ -1,18 +1,18 @@
 package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.common.entity.boss.sculk_enderman.SculkEndermanEntity;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
 import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.*;
+import com.github.sculkhorde.systems.cursor_system.VirtualCursor;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -281,6 +281,15 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             return;
         }
 
+        VirtualCursor cursor = new VirtualCursor(level());
+        cursor.moveTo(this.blockPosition().getX(), this.blockPosition().getY() - 1, this.blockPosition().getZ());
+        cursor.setMaxTransformations(100);
+        cursor.setMaxRange(100);
+        cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(1));
+        cursor.setSearchIterationsPerTick(1);
+        SculkHorde.cursorSystem.addVirtualCursor(cursor);
+
+        /*
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {
             // Spawn Block Traverser
             cursor = new CursorSurfaceInfectorEntity(level());
@@ -291,6 +300,8 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             cursor.setSearchIterationsPerTick(1);
             level().addFreshEntity(cursor);
         }));
+
+         */
     }
 
     protected SoundEvent getAmbientSound() {

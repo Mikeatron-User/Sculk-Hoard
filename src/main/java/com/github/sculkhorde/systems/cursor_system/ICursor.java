@@ -8,6 +8,8 @@ public interface ICursor {
     void setToBeDeleted();
     boolean isSetToBeDeleted();
 
+    void tick();
+
     UUID getUUID();
 
     default UUID createUUID()
