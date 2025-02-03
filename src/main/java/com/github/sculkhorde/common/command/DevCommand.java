@@ -192,15 +192,10 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        infectors.add(infector);
-        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
-        infector.start();
+        SculkHorde.chunkInfestationSystem.addChunkInfector(infector);
 
         return 0;
     }
-
-    protected static ArrayList<ChunkCursorInfector> infectors = new ArrayList<>();
-    protected static ArrayList<ChunkCursorPurifier> purifiers = new ArrayList<>();
 
     protected static int blocksPerTick;
     protected static int fadeDistance;
@@ -211,6 +206,8 @@ public class DevCommand implements Command<CommandSourceStack> {
     protected static boolean fill;
     protected static boolean cave_mode;
 
+    protected static boolean defaulted;
+
     protected static void defaults() {
         blocksPerTick = 128;
         fadeDistance = 0;
@@ -220,6 +217,7 @@ public class DevCommand implements Command<CommandSourceStack> {
         solid_fill = false;
         fill = false;
         cave_mode = false;
+        defaulted = true;
     }
 
     public static int setBlocksPerTick (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -234,21 +232,25 @@ public class DevCommand implements Command<CommandSourceStack> {
 
     public static int setMaxAdjacent (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         maxAdjacent = context.getArgument("max", Integer.class);
+        defaulted = false;
         return 0;
     }
 
     public static int setNoFeatures (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         no_features = context.getArgument("no_features", Boolean.class);
+        defaulted = false;
         return 0;
     }
 
     public static int setDisableObstruction (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         disable_obstruction = context.getArgument("disable_obstruction", Boolean.class);
+        defaulted = false;
         return 0;
     }
 
     public static int setSolidFill (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         solid_fill = context.getArgument("solid_fill", Boolean.class);
+        defaulted = false;
         return 0;
     }
 
@@ -308,35 +310,22 @@ public class DevCommand implements Command<CommandSourceStack> {
     }
 
     public static int pause (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        for (ChunkCursorInfector infector : infectors) {infector.stop();}
-        for (ChunkCursorPurifier purifier : purifiers) {purifier.stop();}
+        for (ChunkCursorInfector infector : SculkHorde.chunkInfestationSystem.getChunkInfectors()) {infector.pause();}
+        for (ChunkCursorPurifier purifier : SculkHorde.chunkInfestationSystem.getChunkPurifiers()) {purifier.pause();}
         return 0;
     }
 
     public static int resume (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        for (ChunkCursorInfector infector : infectors) {infector.start();}
-        for (ChunkCursorPurifier purifier : purifiers) {purifier.start();}
+        for (ChunkCursorInfector infector : SculkHorde.chunkInfestationSystem.getChunkInfectors()) {infector.resume();}
+        for (ChunkCursorPurifier purifier : SculkHorde.chunkInfestationSystem.getChunkPurifiers()) {purifier.resume();}
         return 0;
     }
 
     public static int stop (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ArrayList<ChunkCursorInfector> infectorsB = new ArrayList<>(infectors);
-        ArrayList<ChunkCursorPurifier> purifiersB = new ArrayList<>(purifiers);
-
-        for (ChunkCursorInfector infector : infectorsB) {infector.stopAndFinish();}
-        for (ChunkCursorPurifier purifier : purifiersB) {purifier.stopAndFinish();}
+        for (ChunkCursorInfector infector : SculkHorde.chunkInfestationSystem.getChunkInfectors()) {infector.stop();}
+        for (ChunkCursorPurifier purifier : SculkHorde.chunkInfestationSystem.getChunkPurifiers()) {purifier.stop();}
 
         return 0;
-    }
-
-    public static void removeInfector(ChunkCursorInfector infector) {
-        SculkHorde.LOGGER.info("Removing: " + infector + "...");
-        infectors.remove(infector);
-    }
-
-    public static void removePurifier(ChunkCursorPurifier purifier) {
-        SculkHorde.LOGGER.info("Removing: " + purifier + "...");
-        purifiers.remove(purifier);
     }
 
     public static int entityTest (CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -358,7 +347,6 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .blocksPerTick(blocksPerTick);
 
         level.addFreshEntity(entity);
-
         return 0;
     }
 
@@ -382,7 +370,6 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .blocksPerTick(blocksPerTick);
 
         level.addFreshEntity(entity);
-
         return 0;
     }
 
@@ -394,20 +381,18 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .level(context.getSource().getLevel())
                 .center(center, radius)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        infectors.add(infector);
-        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
-        infector.start();
+        if (!defaulted) {
+            infector.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
-
-
+        SculkHorde.chunkInfestationSystem.addChunkInfector(infector);
         return 0;
     }
 
@@ -420,18 +405,18 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .pos1(pos1)
                 .pos2(pos2)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        infectors.add(infector);
-        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
-        infector.start();
+        if (!defaulted) {
+            infector.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkInfector(infector);
         return 0;
     }
 
@@ -443,18 +428,18 @@ public class DevCommand implements Command<CommandSourceStack> {
         ChunkCursorInfector infector = ChunkCursorInfector.of()
                 .chunkCenter(level, center, radius)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        infectors.add(infector);
-        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
-        infector.start();
+        if (!defaulted) {
+            infector.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkInfector(infector);
         return 0;
     }
 
@@ -470,18 +455,18 @@ public class DevCommand implements Command<CommandSourceStack> {
         ChunkCursorInfector infector = ChunkCursorInfector.of()
                 .chunkArea(chunk1, chunk2)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        infectors.add(infector);
-        infector.executeOnEnd(() -> DevCommand.removeInfector(infector));
-        infector.start();
+        if (!defaulted) {
+            infector.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkInfector(infector);
         return 0;
     }
 
@@ -495,18 +480,18 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .level(context.getSource().getLevel())
                 .center(center, radius)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        purifiers.add(purifier);
-        purifier.executeOnEnd(() -> DevCommand.removePurifier(purifier));
-        purifier.start();
+        if (!defaulted) {
+            purifier.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkPurifier(purifier);
         return 0;
     }
 
@@ -519,18 +504,18 @@ public class DevCommand implements Command<CommandSourceStack> {
                 .pos1(pos1)
                 .pos2(pos2)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        purifiers.add(purifier);
-        purifier.executeOnEnd(() -> DevCommand.removePurifier(purifier));
-        purifier.start();
+        if (!defaulted) {
+            purifier.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkPurifier(purifier);
         return 0;
     }
 
@@ -542,18 +527,18 @@ public class DevCommand implements Command<CommandSourceStack> {
         ChunkCursorPurifier purifier = ChunkCursorPurifier.of()
                 .chunkCenter(level, center, radius)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        purifiers.add(purifier);
-        purifier.executeOnEnd(() -> DevCommand.removePurifier(purifier));
-        purifier.start();
+        if (!defaulted) {
+            purifier.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkPurifier(purifier);
         return 0;
     }
 
@@ -569,20 +554,101 @@ public class DevCommand implements Command<CommandSourceStack> {
         ChunkCursorPurifier purifier = ChunkCursorPurifier.of()
                 .chunkArea(chunk1, chunk2)
                 .caveMode(cave_mode)
-                .disableObstruction(disable_obstruction)
-                .solidFill(solid_fill)
                 .fillMode(fill)
-                .doNotPlaceFeatures(no_features)
                 .blocksPerTick(blocksPerTick)
-                .maxAdjacentBlocks(maxAdjacent)
                 .fadeDistance(fadeDistance);
 
-        purifiers.add(purifier);
-        purifier.executeOnEnd(() -> DevCommand.removePurifier(purifier));
-        purifier.start();
+        if (!defaulted) {
+            purifier.doNotPlaceFeatures(no_features)
+                    .maxAdjacentBlocks(maxAdjacent)
+                    .disableObstruction(disable_obstruction)
+                    .solidFill(solid_fill);
+        }
 
+        SculkHorde.chunkInfestationSystem.addChunkPurifier(purifier);
         return 0;
     }
 
     @Override public int run(CommandContext<CommandSourceStack> context) {return 0;}
 }
+
+/*
+static class BoolValue {
+        private boolean defaulted;
+
+        private boolean defaultState;
+        private boolean state;
+
+        BoolValue(boolean defaultState) {
+            this.defaultState = defaultState;
+            reset();
+        }
+
+        public void setDefault(boolean state) {
+            this.defaultState = state;
+        }
+
+        public void state(boolean state) {
+            this.state = state;
+        }
+
+        public void reset() {
+            this.state = defaultState;
+            this.defaulted = true;
+        }
+
+        public boolean state() {return state;}
+        public boolean defaulted() {return defaulted;}
+    }
+
+    static class IntValue {
+        private boolean defaulted;
+
+        private int defaultState;
+        private int state;
+
+        IntValue(int defaultState) {
+            this.defaultState = defaultState;
+            reset();
+        }
+
+        public void setDefault(int state) {
+            this.defaultState = state;
+        }
+
+        public void state(int state) {
+            this.state = state;
+            this.defaulted = false;
+        }
+
+        public void reset() {
+            this.state = defaultState;
+            this.defaulted = true;
+        }
+
+        public int state() {return state;}
+        public boolean defaulted() {return defaulted;}
+    }
+
+    static class Settings {
+        Settings() {}
+
+        public IntValue blocksPerTick = new IntValue(128);
+        public IntValue fadeDistance = new IntValue(0);
+        public IntValue maxAdjacent = new IntValue(-1);
+
+        public BoolValue noFeatures = new BoolValue(false);
+        public BoolValue disableObstruction = new BoolValue(false);
+        public BoolValue solidFill = new BoolValue(false);
+        public BoolValue fill = new BoolValue(false);
+        public BoolValue caveMode = new BoolValue(false);
+    }
+
+    protected static Settings infectionSettings = new Settings();
+    protected static Settings purificationSettings = new Settings();
+
+    protected static void init() {
+        purificationSettings.solidFill.setDefault(true);
+        purificationSettings.noFeatures.setDefault(true);
+    }
+ */

@@ -45,8 +45,6 @@ public class ChunkInfestationSystem {
 
     public void serverTick()
     {
-        cleanupFinishedChunkCursors();
-
         for(ChunkCursorInfector infector : chunkInfectors)
         {
             infector.tick();
@@ -56,5 +54,7 @@ public class ChunkInfestationSystem {
         {
             purifier.tick();
         }
+
+        cleanupFinishedChunkCursors(); // Moved for debug testing, place back at line 50 once complete
     }
 }

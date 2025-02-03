@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.IPlantable;
@@ -39,6 +40,10 @@ public class ChunkCursorHelper {
         long milliseconds = (time - TimeUnit.SECONDS.toMillis(seconds)) - TimeUnit.MINUTES.toMillis(minutes);
 
         return String.format("%d min: %d sec: %d ms", minutes, seconds, milliseconds);
+    }
+
+    public static BlockPos pokeHeightMap (ServerLevel level, BlockPos pos) {
+        return level.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR, pos);
     }
 
     public static boolean tryToCureBlock(ServerLevel world, BlockPos targetPos, Boolean noGrass)
@@ -108,9 +113,6 @@ public class ChunkCursorHelper {
             world.playSound(null, targetPos, SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS, 2.0F, 0.6F + 1.0F);
         }
 
-        // world.sendParticles(ParticleTypes.SCULK_CHARGE_POP, targetPos.getX() + 0.5D, targetPos.getY() + 1.15D, targetPos.getZ() + 0.5D, 2, 0.2D, 0.0D, 0.2D, 0.0D);
-        // world.playSound(null, targetPos, SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS, 2.0F, 0.6F + 1.0F);
-
         BlockInfestationSystem.removeNearbyVein(world, targetPos);
         BlockInfestationSystem.tryPlaceDiseasedKelp(world, targetPos.above());
 
@@ -119,20 +121,19 @@ public class ChunkCursorHelper {
     }
 
     public static boolean canSpawnBeehive(ServerLevel world, BlockPos targetPos) {
-        SculkHorde.LOGGER.info("System Test: ABOVE_TEST | Origin:" + targetPos + ".above().above() = " + targetPos.above().above() + " | .above(2) = " + targetPos.above(2));
         return (BlockInfestationSystem.blockIsAirOrSnow(world.getBlockState(targetPos)) &&
                 BlockInfestationSystem.blockIsAirOrSnow(world.getBlockState(targetPos.above())) &&
-                BlockInfestationSystem.blockIsAirOrSnow(world.getBlockState(targetPos.above().above()))
+                BlockInfestationSystem.blockIsAirOrSnow(world.getBlockState(targetPos.above(2)))
         );
     }
+
+    private static final Random r = new Random();
 
     /**
      * Will only place Sculk Bee Hives
      * @param world The World to place it in
      * @param targetPos The position to place it in
      */
-
-    private static final Random r = new Random();
 
     public static void tryPlaceSculkBeeHive(ServerLevel world, BlockPos targetPos) {
         //Given random chance and the target location can see the sky, create a sculk hive

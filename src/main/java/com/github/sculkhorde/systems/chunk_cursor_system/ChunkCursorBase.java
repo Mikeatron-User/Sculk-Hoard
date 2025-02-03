@@ -4,7 +4,6 @@ package com.github.sculkhorde.systems.chunk_cursor_system;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.Log;
-import com.github.sculkhorde.util.Tasks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -12,6 +11,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
@@ -22,8 +22,8 @@ import java.util.List;
 
 public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
-    protected final Log debug = new Log(this.toString().replaceAll("com.github.sculkhorde.systems.ghost_cursor_system.", ""));
-    protected final Log fullDebug = new Log(this.toString().replaceAll("com.github.sculkhorde.systems.ghost_cursor_system.", ""));
+    protected final Log debug = new Log(this.toString().replaceAll("com.github.sculkhorde.systems.chunk_cursor_system.", ""));
+    protected final Log fullDebug = new Log(this.toString().replaceAll("com.github.sculkhorde.systems.chunk_cursor_system.", ""));
     //private TaskHandler Tasks;
 
     private ServerLevel serverLevel;
@@ -46,7 +46,6 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     private boolean disableObstruction;         // Will ignore the isObstructed functions output
     private boolean doNotPlaceFeatures;         // Disables Spawners for Infectors, Grass for Purifiers
     private boolean spawnSurfaceCursorsAtEnd;   // Will spawn surface cursors of the appropriate type
-    private boolean initSearchChangeRepeat;     // Will limit the init amount to the blocksPerTick, then skip to searchChange. It will then loop back to init;
     private Runnable executeOnStart;
     private Runnable executeOnPause;
     private Runnable executeOnEnd;
@@ -55,11 +54,17 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     private int maxTicksWarning;
     private boolean warningTriggered = false;
 
+    private boolean shouldTick = true;
     private boolean isFinished = false;
 
 
     // Utilised during runtime
     private final ArrayList<BlockPos> topBlocks = new ArrayList<>();
+    private final ArrayList<BlockPos> checkedBlocks = new ArrayList<>();
+
+    private BlockPos finalTopBlock;
+    private boolean primaryComplete = false;
+    private int batchesSinceLastChange = 0;
 
     private int totalTicks = 0;
     private long startTime = 0;
@@ -67,6 +72,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     private long functionStartTime = 0;
     private int currentBatch = 0;
     private int currentBlock = 0;
+    private int maxExtraBlocks = 0;
     private int xOffset = 0;
     private int zOffset = 0;
     private int areaLowestY;
@@ -74,7 +80,6 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
     // Status
     private boolean active = false;         // Running / Should be running
-    private boolean tickMode = false;       // Synced with a Ticking Entity
     private State status = State.OFFLINE;   // Determines what functions to run
 
     protected enum State {
@@ -94,57 +99,48 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
     // Control Functions -----------------------------------------------------------------------------------------------
     public void tick() {
-        if (startTime == 0) startTime = System.currentTimeMillis();
-        tickMode = true;
+        if (!shouldTick) return;
+
+        if (totalTime == 0 && startTime == 0) {
+            startTime = System.currentTimeMillis();
+
+            debug.info("------ Settings Dump ------");
+            debug.info("    Server Level: " + serverLevel);
+            debug.info("    Center: " + center);
+            debug.info("    POS_1: " + pos1);
+            debug.info("    POS_2: " + pos2);
+            debug.info("    maxTicks: " + maxTicks);
+            debug.info("    blocksPerTick: " + blocksPerTick);
+            debug.info("    fadeDistance: " + fadeDistance);
+            debug.info("    caveMode: " + caveMode);
+            debug.info("    fillMode: " + fillMode);
+            debug.info("    solidFill: " + solidFill);
+            debug.info("    disableObstruction: " + disableObstruction);
+            debug.info("    doNotPlaceFeatures: " + doNotPlaceFeatures);
+
+            if (executeOnStart != null) {
+                debug.info("Executing the following command: " + executeOnStart);
+                executeOnStart.run();
+            }
+        }
+
         active = true;
         run();
     }
 
-    public boolean start() {
-        if (active || status.equals(State.OFFLINE)) {
-            if (active) {
-                debug.error("Cursor is already running, current Tasks: " + status);
-            }
-            else {
-                debug.error("Cursor is OFFLINE and has not been initialised!");
-            }
-            return false;
+    public void reset() {
+        if (!active) {
+            clear();
+            isFinished = false;
+            shouldTick = true;
         }
-
-        if (startTime == 0) {
-            startTime = System.currentTimeMillis();
-        }
-
-        debug.info("Starting!");
-        //Tasks = new TaskHandler(serverLevel.getServer());
-        Tasks.schedule(1, this::run);
-
-        active = true;
-        tickMode = false;
-
-        debug.info("------ Settings Dump ------");
-        debug.info("    Server Level: " + serverLevel);
-        debug.info("    Center: " + center);
-        debug.info("    POS_1: " + pos1);
-        debug.info("    POS_2: " + pos2);
-        debug.info("    maxTicks: " + maxTicks);
-        debug.info("    blocksPerTick: " + blocksPerTick);
-        debug.info("    fadeDistance: " + fadeDistance);
-        debug.info("    caveMode: " + caveMode);
-        debug.info("    fillMode: " + fillMode);
-        debug.info("    solidFill: " + solidFill);
-        debug.info("    disableObstruction: " + disableObstruction);
-        debug.info("    doNotPlaceFeatures: " + doNotPlaceFeatures);
-
-        if (executeOnStart != null) {
-            debug.info("Executing the following command: " + executeOnStart);
-            executeOnStart.run();
-        }
-        return true;
-
     }
 
-    public void stop() {
+    public void resume() {
+        shouldTick = true;
+    }
+
+    public void pause() {
         totalTime = totalTime + (System.currentTimeMillis() - startTime);
 
         debug.info("Task: " + status + " Paused! | Time Taken So Far: " + ChunkCursorHelper.getTimeSince(functionStartTime));
@@ -153,9 +149,13 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         active = false;
         functionStartTime = 0;
         startTime = 0;
+
+        shouldTick = false;
+
+        if (executeOnPause != null) executeOnPause.run();
     }
 
-    public void stopAndFinish() {
+    public void stop() {
         debug.info("Exiting Task...");
         finish();
     }
@@ -169,6 +169,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             resetTrackers();
             status = State.READY;
             topBlocks.clear();
+            checkedBlocks.clear();
 
             warningTriggered = false;
             totalTicks = 0;
@@ -177,6 +178,8 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             totalTime = 0;
             functionStartTime = 0;
             areaLowestY = 0;
+
+            primaryComplete = false;
         }
     }
 
@@ -252,6 +255,15 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         );
     }
 
+    protected boolean isValidAdjacent(ServerLevel serverLevel, BlockPos pos) {
+        return (
+                boundingBox.contains(pos.getCenter()) &&
+                !isObstructed(serverLevel, pos) &&
+                canChange(serverLevel, pos) &&
+                !checkedBlocks.contains(pos)
+        );
+    }
+
     protected boolean isSolid(ServerLevel serverLevel, BlockPos pos) {
         return BlockAlgorithms.isSolid(serverLevel, pos);
     }
@@ -301,7 +313,12 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
         for (Entity entity : entities) {
             if (entity instanceof ItemEntity item) {
-                if (ModConfig.SERVER.isItemEdibleToCursors(item)) item.discard();
+                if (ModConfig.SERVER.isItemEdibleToCursors(item)) {
+                    item.discard();
+                }
+                else if (ComposterBlock.COMPOSTABLES.containsKey(item.getItem().getItem())) {
+                    item.discard();
+                }
             }
         }
     }
@@ -319,8 +336,6 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                 .spawnSurfaceCursorsAtEnd(false);
     }
 
-    private int maxExtraBlocks = 0;
-
     protected void initAABB(BlockPos pos1, BlockPos pos2) {
         boundingBox = new AABB(pos1, pos2);
     }
@@ -329,9 +344,11 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     // Main Functions --------------------------------------------------------------------------------------------------
     // OFFLINE | READY | INIT | CAVER | SEARCH | CHANGE | SEARCH_CHANGE
     protected void run() {
+        if (isFinished) return;
+
         totalTicks++;
 
-        if (!tickMode && maxTicks > 0) {
+        if (maxTicks > 0) {
             if (!warningTriggered && totalTicks >= maxTicksWarning) {
                 debug.error("Potential Runaway Cursor Detected! totalTicks has used 50% of its maxTicks [" + totalTicks + " ticks | " + maxTicks + " ticks] - Continuing...");
                 warningTriggered = true;
@@ -353,9 +370,6 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                 case SEARCH_CHANGE -> {searchAndChange();}
             }
         }
-        else {
-            if (executeOnPause != null) executeOnPause.run();
-        }
     }
 
     protected void finish() {
@@ -365,6 +379,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         debug.info("Complete! | Total Time Taken: " + ChunkCursorHelper.textTime(totalTime) +  " | Ticks: " + totalTicks);
 
         active = false;
+        shouldTick = false;
         isFinished = true;
         clear();
     }
@@ -380,10 +395,12 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     }
 
     protected void completeTask() {
-        debug.info("Task: " + status + " Complete! | Time Taken: " + ChunkCursorHelper.getTimeSince(functionStartTime));
         resetTrackers();
+        active = false;
 
-        if (tickMode) active = false;
+        if (isFinished) return;
+
+        debug.info("Task: " + status + " Complete! | Time Taken: " + ChunkCursorHelper.getTimeSince(functionStartTime));
 
         switch (status) {
             case INIT -> {
@@ -397,13 +414,13 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                 else {
                     status = State.SEARCH_CHANGE;
                     firstEntityCheck(serverLevel, boundingBox);
+                    finalTopBlock = topBlocks.get(topBlocks.size()-1);
                 }
-                if (!tickMode) Tasks.schedule(1, this::run);
             }
             case CAVER -> {
                 status = State.SEARCH_CHANGE;
                 firstEntityCheck(serverLevel, boundingBox);
-                if (!tickMode) Tasks.schedule(1, this::run);
+                finalTopBlock = topBlocks.get(topBlocks.size()-1);
             }
             case SEARCH_CHANGE -> {
                 finalEntityCheck(serverLevel, boundingBox);
@@ -452,16 +469,10 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             currentBlock++;
         }
 
-        // If we haven't finished yet, schedule the next tick
-        if (currentBlock < topBlocks.size()) {
-            if (!tickMode) Tasks.schedule(1, this::run);
-        }
-        // Otherwise, complete the task
-        else {
+        // If we haven't finished yet, wait for the next tick
+        if (currentBlock >= topBlocks.size()) {
             completeTask();
         }
-
-
     }
 
     protected void init() {
@@ -506,12 +517,13 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                     topBlocks.add(new BlockPos(x, topY, z));
                 }
                 else {
-                    topBlocks.add(pokeHeightMap(serverLevel, new BlockPos(x, topY, z)));
+                    topBlocks.add(ChunkCursorHelper.pokeHeightMap(serverLevel, new BlockPos(x, topY, z)));
                 }
 
                 blocksChecked++;
 
                 /*
+                // Currently doesn't work, look into further
                 if (blocksChecked >= blocksPerTick * 8) {
                     initResume = true;
                     xOffset = x;
@@ -526,10 +538,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             if (initResume) break;
         }
 
-        if (initResume) {
-            if (!tickMode) Tasks.schedule(1, this::run);
-        }
-        else {
+        if (!initResume) {
             Collections.shuffle(topBlocks);
             debug.info("Total Blocks Found: " + topBlocks.size());
             fullDebug.info("Blocks Found: " + topBlocks);
@@ -553,13 +562,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
         for (int i = 0; i < blocksPerTick; i++) {
 
-            if(currentBlock >= topBlocks.size())
-            {
-                break;
-            }
-
-
-            // for (int y = topBlocks.get(currentBatch).getY(); y > lowestY;  y--) {
+            if (currentBlock >= topBlocks.size()) break;
 
             BlockPos pos = topBlocks.get(currentBlock);
             int maxY = fillMode ? pos.getY() - areaLowestY : pos.getY() - lowestY;
@@ -571,39 +574,44 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
             boolean addedS = false;
             boolean addedW = false;
 
+            if (pos.equals(finalTopBlock)) {
+                debug.info("Primary Area complete! Awaiting adjacent completion...");
+                primaryComplete = true;
+            }
+
             for (int y = 0; y < maxY; y++)
             {
                 BlockPos posY = pos.below(y);
                 blocksChecked++;
-
-                fullDebug.info("    Current Y Pos: " + posY);
 
                 // If we are including adjacent blocks, check if we can add them
                 if (shouldRunAdjacent(serverLevel, posY)) {
                     BlockPos posY2 = posY.above();
                     for (int a = 0; a <= 2; a++) {
 
+                        checkedBlocks.add(posY2);
+
                         BlockPos posN = posY2.north();
                         BlockPos posE = posY2.east();
                         BlockPos posS = posY2.south();
                         BlockPos posW = posY2.west();
 
-                        if (boundingBox.contains(posN.getCenter()) && !isObstructed(serverLevel, posN) && canChange(serverLevel, posN) && !addedN) {
+                        if (isValidAdjacent(serverLevel, posN) && !addedN) {
                             adjacentBlocks.add(posN);
                             addedN = true;
                             totalExtraBlocks++;
                         }
-                        if (boundingBox.contains(posE.getCenter()) && !isObstructed(serverLevel, posE) && canChange(serverLevel, posE) && !addedE) {
+                        if (isValidAdjacent(serverLevel, posE) && !addedE) {
                             adjacentBlocks.add(posE);
                             addedE = true;
                             totalExtraBlocks++;
                         }
-                        if (boundingBox.contains(posS.getCenter()) && !isObstructed(serverLevel, posS) && canChange(serverLevel, posS) && !addedS) {
+                        if (isValidAdjacent(serverLevel, posS) && !addedS) {
                             adjacentBlocks.add(posS);
                             addedS = true;
                             totalExtraBlocks++;
                         }
-                        if (boundingBox.contains(posW.getCenter()) && !isObstructed(serverLevel, posW) && canChange(serverLevel, posW) && !addedW) {
+                        if (isValidAdjacent(serverLevel, posW) && !addedW) {
                             adjacentBlocks.add(posW);
                             addedW = true;
                             totalExtraBlocks++;
@@ -624,7 +632,6 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                     }
                 }
                 else if (isObstructed(serverLevel, posY) && !disableObstruction && !fillMode) {
-                    fullDebug.info("    OBSTRUCTED!");
                     break;
                 }
                 else {
@@ -647,19 +654,28 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
         }
 
+        // Add any adjacent blocks found in this batch to the topBlocks array for processing
         if (maxExtraBlocks > 0) {
             topBlocks.addAll(adjacentBlocks);
-            debug.info("Adding Adjacent Blocks to Top Blocks | Total: " + adjacentBlocks.size() + " | Total Adjacent: " + totalExtraBlocks + " - Max: " + maxExtraBlocks);
+            fullDebug.info("Adding Adjacent Blocks to Top Blocks | Total: " + adjacentBlocks.size() + " | Total Adjacent: " + totalExtraBlocks + " - Max: " + maxExtraBlocks);
         }
 
-        debug.info("Batch Complete! Checked " + blocksChecked + " blocks | Changed " + blocksChanged + " blocks");
+        fullDebug.info("Batch Complete! Checked " + blocksChecked + " blocks | Changed " + blocksChanged + " blocks");
 
+        // Every 32 batches, run the periodic check
         if (currentBatch % 32 == 0) periodicEntityCheck(serverLevel, boundingBox);
 
-        if (currentBlock < topBlocks.size()) {
-            if (!tickMode) Tasks.schedule(1, this::run);
+        // Reset to 0 if anything was changed in this batch
+        batchesSinceLastChange = (blocksChanged == 0) ? batchesSinceLastChange + 1 : 0;
+
+        // Exit early if all topBlocks have been run through and none of the last 12 batches of adjacentBlocks found anything changeable
+        if (primaryComplete && batchesSinceLastChange >= 16) {
+            debug.info("The last 16 batches did not find any changeable blocks. Primary area is complete, terminating early...");
+            completeTask();
         }
-        else {
+
+        // No blocks left, finish
+        if (currentBlock >= topBlocks.size()) {
             completeTask();
         }
     }
@@ -668,7 +684,12 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     protected void checkReady() {
         clear();
         if (serverLevel != null && pos1 != null && pos2 != null) {
-            fullDebug.info("System is now ready for execution!");
+            debug.info("ServerLevel: " + serverLevel + " | CONFIRMED");
+            if (center != null) {debug.info("Center:     " + center + " | CONFIRMED");}
+            else {debug.info("    Center: BlockPos{#N/A}                 | OFFLINE");}
+            debug.info("Position 1: " + pos1 +   " | CONFIRMED");
+            debug.info("Position 2: " + pos2 +   " | CONFIRMED");
+            debug.info("System is now ready for execution!");
             status = State.READY;
         }
     }
@@ -676,7 +697,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     // Builder ---------------------------------------------------------------------------------------------------------
     public T level(ServerLevel serverLevel) {
         if (!active) {
-            fullDebug.info("Setting level set: " + serverLevel);
+            debug.info("Setting level set: " + serverLevel);
             this.serverLevel = serverLevel;
             this.level = serverLevel;
             this.lowestY = level.getMinBuildHeight();
@@ -686,7 +707,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     }
 
     public T blocksPerTick(int blocksPerTick) {
-        fullDebug.info("Setting blocksPerTick set: " + blocksPerTick);
+        debug.info("Setting blocksPerTick set: " + blocksPerTick);
         this.blocksPerTick = blocksPerTick;
         return (T) this;
     }
@@ -701,7 +722,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     public T center(BlockPos center, int radius) {
         // N: -Z | E: +X | S: +Z | W: -X
         if (!active) {
-            fullDebug.info("Setting center set: " + center + " | r = " + radius);
+            debug.info("Setting center set: " + center + " | r = " + radius);
             this.center = center;
             this.pos1 = center.north(radius).west(radius).below(radius);
             this.pos2 = center.south(radius).east(radius).above(radius);
@@ -712,7 +733,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
     public T pos1(BlockPos pos1) {
         if (!active) {
-            fullDebug.info("Setting pos1 set: " + pos1);
+            debug.info("Setting pos1 set: " + pos1);
             this.center = null;
             this.pos1 = pos1;
             checkReady();
@@ -722,7 +743,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
     public T pos2(BlockPos pos2) {
         if (!active) {
-            fullDebug.info("Setting pos2 set: " + pos2);
+            debug.info("Setting pos2 set: " + pos2);
             this.center = null;
             this.pos2 = pos2;
             checkReady();
@@ -740,7 +761,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     public T chunkCenter(ServerLevel level, BlockPos pos, int radius) {
         // N: -Z | E: +X | S: +Z | W: -X
         if (!active) {
-            fullDebug.info("Setting center set: [Block: " + pos + " | Chunk: " + level.getChunkAt(pos) + "] | r = " + radius);
+            debug.info("Setting center set: [Block: " + pos + " | Chunk: " + level.getChunkAt(pos) + "] | r = " + radius);
 
             LevelChunk centerChunk =  level.getChunkAt(pos);
             LevelChunk nwChunk = level.getChunk(centerChunk.getPos().x - radius, centerChunk.getPos().z - radius);
@@ -949,6 +970,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     }
 
     public T maxTicks(int ticks) {
+        debug.info("Setting maxTicks set: " + ticks + " | maxTicksWarning set: " + ticks/2);
         this.maxTicks = ticks;
         this.maxTicksWarning = ticks/2;
         return (T) this;
@@ -969,9 +991,4 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
     public boolean shouldSolid() {return solidFill;}
     public boolean shouldPlaceFeatures() {return !doNotPlaceFeatures;}
     public boolean shouldSpawnCursors() {return spawnSurfaceCursorsAtEnd;}
-
-
-    public static BlockPos pokeHeightMap (ServerLevel level, BlockPos pos) {
-        return level.getHeightmapPos(Heightmap.Types.OCEAN_FLOOR, pos);
-    }
 }

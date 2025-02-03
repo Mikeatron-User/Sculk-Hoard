@@ -90,8 +90,9 @@ public class ChunkInfectEntity extends Entity {
 
             if (!(this.blockPosition().getX() == currentBlock.getX() && this.blockPosition().getZ() == currentBlock.getZ()) || level().dimension() != currentLevel) {
                 currentBlock = this.blockPosition();
-                infector.stop();
+                infector.pause();
                 infector.level((ServerLevel) level()).center(this.blockPosition(), radius);
+                infector.resume();
                 ready = true;
             }
 
