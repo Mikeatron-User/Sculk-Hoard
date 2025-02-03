@@ -145,6 +145,22 @@ public class CursorSystem {
      */
     public void serverTick()
     {
+        if(!isPerformanceModeThresholdReached())
+        {
+            setManualControlOfTickingEnabled(false);
+
+            // Virtual Cursors
+            virtualCursors.clean(); // Clean the list before we start ticking cursors
+            tickVirtualCursors();
+
+            // Entity Cursors
+            cursors.clean(); // Clean the list before we start ticking cursors
+            tickCursors();
+
+            return;
+        }
+
+        /// If performance mode is enabled, we need to manually tick cursors.
         //Only Execute if the cooldown. Get the value from the config file.
         if(tickDelay < SculkHorde.autoPerformanceSystem.getDelayBetweenCursorTicks())
         {
@@ -153,22 +169,15 @@ public class CursorSystem {
         }
         tickDelay = 0;
 
+        setManualControlOfTickingEnabled(true);
+
         // Virtual Cursors
         virtualCursors.clean(); // Clean the list before we start ticking cursors
         tickVirtualCursors();
 
         // Entity Cursors
-
         cursors.clean(); // Clean the list before we start ticking cursors
-
-        if(isPerformanceModeThresholdReached())
-        {
-            setManualControlOfTickingEnabled(true);
-            tickCursors();
-            return;
-        }
-
-        setManualControlOfTickingEnabled(false);
+        tickCursors();
     }
 
     public class SortedCursorList
