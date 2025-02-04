@@ -6,7 +6,6 @@ import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -80,6 +79,7 @@ public class VirtualCursor implements ICursor{
         return uuid;
     }
 
+    @Override
     public boolean isSuccessfullyFinished()
     {
         return state == State.FINISHED;
@@ -99,36 +99,37 @@ public class VirtualCursor implements ICursor{
     public void moveTo(double x, double y, double z) {
         this.pos = new BlockPos((int) x, (int) y, (int) z);
     }
+    @Override
     public Level getLevel()
     {
         return level;
     }
-
+    @Override
     public BlockPos getBlockPosition()
     {
         return pos;
     }
-
+    @Override
     public void setMaxTransformations(int MAX_INFECTIONS) {
         this.MAX_TRANSFORMATIONS = MAX_INFECTIONS;
     }
-
+    @Override
     public void setMaxRange(int MAX_RANGE) {
         this.MAX_RANGE = MAX_RANGE;
     }
-
+    @Override
     public void setMaxLifeTimeTicks(long ticks) {
         this.MAX_LIFETIME_TICKS = ticks;
     }
-
+    @Override
     public void setSearchIterationsPerTick(int iterations) {
         this.searchIterationsPerTick = iterations;
     }
-
+    @Override
     public void setTickIntervalTicks(long ticks) {
         this.tickIntervalTicks = ticks;
     }
-
+    @Override
     public void setState(State state)
     {
         this.state = state;
@@ -246,7 +247,7 @@ public class VirtualCursor implements ICursor{
         return false;
     }
 
-    public void exploreTick()
+    protected void exploreTick()
     {
         // Get Neighbors of Each Block
         ArrayList<BlockPos> neighbors = BlockAlgorithms.getNeighborsCube(this.getBlockPosition(), false);
@@ -302,12 +303,12 @@ public class VirtualCursor implements ICursor{
         // Mark position as visited
         visitedPositions.put(closest.asLong(), true);
     }
-    private final Predicate<Entity> IS_DROPPED_ITEM = (entity) ->
+    protected final Predicate<Entity> IS_DROPPED_ITEM = (entity) ->
     {
         return entity instanceof ItemEntity;
     };
 
-    public void cursorTick()
+    protected void cursorTick()
     {
         float timeElapsedTicks = getLevel().getGameTime() - lastTickTime;
         double tickIntervalAfterMultiplier;
@@ -333,8 +334,17 @@ public class VirtualCursor implements ICursor{
             origin = getBlockPosition();
         }
 
-        if(getLevel().random.nextFloat() <= 0.1 && cursorType == CursorType.INFESTOR)
+        // If we are an infestor cursor
+        if(cursorType == CursorType.INFESTOR)
         {
+            chanceToThanosSnapThisCursor();
+
+            // Chance to eat items off ground
+            if(getLevel().random.nextFloat() > 0.1)
+            {
+                return;
+            }
+
             AABB boundingBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(getBlockPosition().getCenter(), 20);
             List<Entity> entities = EntityAlgorithms.getEntitiesInBoundingBox((ServerLevel) getLevel(), boundingBox, IS_DROPPED_ITEM);
             for(Entity entity : entities)
@@ -437,21 +447,20 @@ public class VirtualCursor implements ICursor{
 
     }
 
-    public void setTarget(BlockPos target) {
+    protected void setTarget(BlockPos target) {
         this.target = target;
     }
 
-    public void chanceToThanosSnapThisCursor()
+    protected void chanceToThanosSnapThisCursor()
     {
         if(getLevel().isClientSide()) { return; }
 
         if(SculkHorde.autoPerformanceSystem.isThanosSnappingCursors())
         {
             ServerLevel serverLevel = (ServerLevel) getLevel();
-            MinecraftServer server = serverLevel.getServer();
             if(serverLevel.random.nextBoolean())
             {
-                //server.tell(new net.minecraft.server.TickTask(getLevel().getServer().getTickCount() + 1, this::discard));
+                setMaxTransformations(0);
             }
         }
     }

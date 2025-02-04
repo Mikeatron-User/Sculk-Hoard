@@ -6,22 +6,24 @@ import net.minecraft.world.level.Level;
 import java.util.UUID;
 
 public interface ICursor {
-
-    void moveTo(double x, double y, double z);
-    void setToBeDeleted();
-    boolean isSetToBeDeleted();
-
-    BlockPos getBlockPosition();
-
-    Level getLevel();
-
     void tick();
-
     UUID getUUID();
-
     default UUID createUUID()
     {
         return UUID.randomUUID();
     }
+    boolean isSuccessfullyFinished();
+    void setToBeDeleted();
+    boolean isSetToBeDeleted();
+    void moveTo(double x, double y, double z);
+    Level getLevel();
+    BlockPos getBlockPosition();
+    void setMaxTransformations(int MAX_INFECTIONS);
+    void setMaxRange(int MAX_RANGE);
+    void setMaxLifeTimeTicks(long ticks);
+    void setSearchIterationsPerTick(int iterations);
+    void setTickIntervalTicks(long ticks);
+    void setState(VirtualCursor.State state);
+
 
 }
