@@ -415,6 +415,9 @@ public class VirtualCursor implements ICursor{
             return;
         }
 
+        cursorTick();
+
+        /*
         if(canBeManuallyTicked())
         {
             ticksRemainingBeforeCheckingIfInCursorList--;
@@ -433,6 +436,8 @@ public class VirtualCursor implements ICursor{
         if(shouldTick) {
             cursorTick();
         }
+
+         */
 
     }
 
