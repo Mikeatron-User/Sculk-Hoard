@@ -106,7 +106,7 @@ public class CursorSystem {
 
     public static Optional<VirtualSurfaceInfestorCursor> createSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
     {
-        SculkHorde.cursorSystem.debugHowManyVirtualCursorsAreInThisArea(level, pos, 5);
+        //SculkHorde.cursorSystem.debugHowManyVirtualCursorsAreInThisArea(level, pos, 5);
         if(SculkHorde.cursorSystem.isCursorPopulationAtMax())
         {
             return Optional.empty();
