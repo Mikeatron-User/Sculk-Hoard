@@ -3,7 +3,6 @@ package com.github.sculkhorde.common.entity;
 import com.github.sculkhorde.common.entity.boss.sculk_enderman.SculkEndermanEntity;
 import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.*;
 import com.github.sculkhorde.systems.cursor_system.CursorSystem;
 import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
@@ -72,7 +71,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    private CursorSurfaceInfectorEntity cursor;
+    private VirtualSurfaceInfestorCursor cursor;
 
     private long INFECTION_INTERVAL_TICKS = TickUnits.convertSecondsToTicks(5);
     private long lastInfectionTime = 0;
@@ -232,7 +231,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
         Random random = new Random();
         boolean passRandomChance = random.nextInt(100) == 0;
-        boolean isCursorNullOrDead = cursor == null || !cursor.isAlive();
+        boolean isCursorNullOrDead = cursor == null || cursor.isSetToBeDeleted();
         boolean isBlockInfestationEnabled = ModConfig.SERVER.block_infestation_enabled.get();
         // The reason we do this instead of just checking if the horde is active is because sometimes people will spawn these
         // without activating the horde.
@@ -241,7 +240,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
         if (canSpawnCursor && !SculkHorde.cursorSystem.isCursorPopulationAtMax()) {
             // Spawn Block Traverser
-            tellServerToSpawnCursorNextTick();
+            spawnCursor();
             triggerAnim("spread_controller", "spread_animation");
         }
 
@@ -276,21 +275,22 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
         level().addFreshEntity(areaeffectcloud);
     }
 
-    protected void tellServerToSpawnCursorNextTick()
+    protected void spawnCursor()
     {
         if(level().isClientSide() || level().getServer() == null)
         {
             return;
         }
 
-        Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+        Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
 
-        if(cursor.isPresent())
+        if(possibleCursor.isPresent())
         {
-            cursor.get().setMaxTransformations(100);
-            cursor.get().setMaxRange(100);
-            cursor.get().setTickIntervalTicks(1);
-            cursor.get().setSearchIterationsPerTick(1);
+            possibleCursor.get().setMaxTransformations(100);
+            possibleCursor.get().setMaxRange(100);
+            possibleCursor.get().setTickIntervalTicks(1);
+            possibleCursor.get().setSearchIterationsPerTick(1);
+            cursor = possibleCursor.get();
         }
 
         /*

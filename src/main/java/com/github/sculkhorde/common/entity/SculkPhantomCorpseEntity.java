@@ -241,13 +241,14 @@ public class SculkPhantomCorpseEntity extends Monster implements GeoEntity, IScu
             level().getServer().tell(new net.minecraft.server.TickTask(level().getServer().getTickCount() + 1, () -> {
 
                 // Spawn Block Traverser
-                Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
-                if(cursor.isPresent())
+                Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+                if(possibleCursor.isPresent())
                 {
-                    cursor.get().setMaxTransformations(100);
-                    cursor.get().setMaxRange(100);
-                    cursor.get().setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.5F));
-                    cursor.get().setSearchIterationsPerTick(1);
+                    cursor = possibleCursor.get();
+                    cursor.setMaxTransformations(100);
+                    cursor.setMaxRange(100);
+                    cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.5F));
+                    cursor.setSearchIterationsPerTick(1);
                 }
             }));
             triggerAnim("spread_controller", "spread_animation");
