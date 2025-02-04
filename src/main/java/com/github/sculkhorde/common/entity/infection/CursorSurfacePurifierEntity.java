@@ -13,7 +13,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.function.Predicate;
 
 public class CursorSurfacePurifierEntity extends CursorEntity{
 
@@ -71,6 +74,16 @@ public class CursorSurfacePurifierEntity extends CursorEntity{
     protected void transformBlock(BlockPos pos)
     {
         BlockInfestationSystem.tryToCureBlock((ServerLevel) this.level(), pos);
+
+        // Get all infector cursor entities in area and kill them
+        Predicate<CursorSurfaceInfectorEntity> isCursor = Objects::nonNull;
+        List<CursorSurfaceInfectorEntity> Infectors = this.level().getEntitiesOfClass(CursorSurfaceInfectorEntity.class, this.getBoundingBox().inflate(5.0D), isCursor);
+        for(CursorSurfaceInfectorEntity infector : Infectors)
+        {
+            infector.setMaxTransformations(0);
+            setMaxTransformations(0);
+            break;
+        }
     }
 
     @Override
