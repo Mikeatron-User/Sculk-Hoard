@@ -12,9 +12,10 @@ import java.util.UUID;
 public class CursorSystem {
 
     // Virtual Cursors Variables ---------------------------------------------------------------------------------------
+
+    SortedVirtualCursorList performanceExemptCursors = new SortedVirtualCursorList();
     SortedVirtualCursorList virtualCursors = new SortedVirtualCursorList();
     private int virtualCursorIndex = 0;
-    private int virtualTickDelay = 3;
 
 
     // Entity Cursors Variables ----------------------------------------------------------------------------------------
@@ -82,26 +83,48 @@ public class CursorSystem {
 
     // Virtual Cursors Methods -----------------------------------------------------------------------------------------
 
-    public static VirtualSurfaceInfestorCursor createSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
+    public static Optional<VirtualSurfaceInfestorCursor> createSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
     {
+        if(SculkHorde.cursorSystem.isCursorPopulationAtMax())
+        {
+            return Optional.empty();
+        }
+
         VirtualSurfaceInfestorCursor cursor = new VirtualSurfaceInfestorCursor(level);
         cursor.moveTo(pos.getX(), pos.getY(), pos.getZ());
         SculkHorde.cursorSystem.addVirtualCursor(cursor);
-        return cursor;
+        return Optional.of(cursor);
     }
 
     public void addVirtualCursor(ICursor entity)
     {
-        virtualCursors.insertCursor(entity);
-    }
-
-    public void computeIfAbsentVirtualCursor(ICursor entity)
-    {
         if(virtualCursors.getIndexOfCursor(entity).isEmpty())
         {
-            addVirtualCursor(entity);
+            virtualCursors.insertCursor(entity);
         }
     }
+
+    public static VirtualSurfaceInfestorCursor createPerformanceExemptSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
+    {
+        VirtualSurfaceInfestorCursor cursor = new VirtualSurfaceInfestorCursor(level);
+        cursor.moveTo(pos.getX(), pos.getY(), pos.getZ());
+        SculkHorde.cursorSystem.addPerformanceExemptVirtualCursor(cursor);
+        return cursor;
+    }
+
+    public void addPerformanceExemptVirtualCursor(ICursor entity)
+    {
+        if(performanceExemptCursors.getIndexOfCursor(entity).isEmpty())
+        {
+            performanceExemptCursors.insertCursor(entity);
+        }
+    }
+
+    public int getSizeOfPerformanceExemptVirtualCursorList()
+    {
+        return performanceExemptCursors.list.size();
+    }
+
 
     public int getSizeOfVirtualCursorList()
     {
@@ -110,10 +133,16 @@ public class CursorSystem {
 
     public void tickVirtualCursors()
     {
+        // Tick All Performance Exempt Cursors, regardless of performance mode
+        ArrayList<ICursor> listOfPerformanceExemptCursors = performanceExemptCursors.getList();
+        for(ICursor cursorAtIndex : listOfPerformanceExemptCursors)
+        {
+            cursorAtIndex.tick();
+        }
+
+        // Tick Virtual Cursors
         ArrayList<ICursor> listOfCursors = virtualCursors.getList();
-
         int cursorsTicked = 0;
-
         for(int i = 0; i < SculkHorde.cursorSystem.getSizeOfVirtualCursorList() && cursorsTicked <= SculkHorde.autoPerformanceSystem.getCursorsToTickPerTick(); i++)
         {
             if(virtualCursorIndex >= listOfCursors.size())
@@ -130,11 +159,7 @@ public class CursorSystem {
                 continue;
             }
 
-            // If this cursor can be manually ticked, count it.
-            // Cursors that cant be manually ticked are usually important ones
-            // like the ones from the dev infectinator or creeper cursors.
-            // This is a sudo high priority system.
-            if(cursorAtIndex.canBeManuallyTicked())
+            if(isPerformanceModeThresholdReached())
             {
                 cursorsTicked++;
             }
@@ -148,11 +173,11 @@ public class CursorSystem {
 
     public boolean isPerformanceModeThresholdReached()
     {
-        return getSizeOfCursorList() >= SculkHorde.autoPerformanceSystem.getInfectorCursorPopulationThreshold();
+        return getSizeOfCursorList() + getSizeOfVirtualCursorList() >= SculkHorde.autoPerformanceSystem.getInfectorCursorPopulationThreshold();
     }
     public boolean isCursorPopulationAtMax()
     {
-        return getSizeOfCursorList() >= SculkHorde.autoPerformanceSystem.getMaxInfectorCursorPopulation();
+        return getSizeOfCursorList() + getSizeOfVirtualCursorList() >= SculkHorde.autoPerformanceSystem.getMaxInfectorCursorPopulation();
     }
 
     // Main Methods ----------------------------------------------------------------------------------------------------

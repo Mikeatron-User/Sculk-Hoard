@@ -53,11 +53,6 @@ public class VirtualCursor implements ICursor{
     }
 
     protected CursorType cursorType = CursorType.INFESTOR;
-
-    protected long ticksRemainingBeforeCheckingIfInCursorList = 0;
-    protected final long CHECK_DELAY_TICKS = TickUnits.convertSecondsToTicks(5);
-    protected boolean canBeManuallyTicked = true;
-
     protected int searchIterationsPerTick = 20;
     protected long tickIntervalTicks = TickUnits.convertSecondsToTicks(1);
 
@@ -133,10 +128,6 @@ public class VirtualCursor implements ICursor{
     public void setTickIntervalTicks(long ticks) {
         this.tickIntervalTicks = ticks;
     }
-
-    public void setCanBeManuallyTicked(boolean value) { canBeManuallyTicked = value; }
-
-    public boolean canBeManuallyTicked() { return canBeManuallyTicked; }
 
     public void setState(State state)
     {

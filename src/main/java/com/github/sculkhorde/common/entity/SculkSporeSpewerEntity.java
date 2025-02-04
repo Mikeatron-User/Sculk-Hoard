@@ -37,6 +37,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 
 public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculkSmartEntity {
@@ -282,11 +283,15 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             return;
         }
 
-        VirtualSurfaceInfestorCursor cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition().below());
-        cursor.setMaxTransformations(100);
-        cursor.setMaxRange(100);
-        cursor.setTickIntervalTicks(1);
-        cursor.setSearchIterationsPerTick(1);
+        Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+
+        if(cursor.isPresent())
+        {
+            cursor.get().setMaxTransformations(100);
+            cursor.get().setMaxRange(100);
+            cursor.get().setTickIntervalTicks(1);
+            cursor.get().setSearchIterationsPerTick(1);
+        }
 
         /*
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {

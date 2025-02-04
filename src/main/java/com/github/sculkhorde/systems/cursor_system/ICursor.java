@@ -8,8 +8,6 @@ public interface ICursor {
     void setToBeDeleted();
     boolean isSetToBeDeleted();
 
-    boolean canBeManuallyTicked();
-
     void tick();
 
     UUID getUUID();

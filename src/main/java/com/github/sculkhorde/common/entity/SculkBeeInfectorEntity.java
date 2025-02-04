@@ -1,11 +1,12 @@
 package com.github.sculkhorde.common.entity;
 
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.SculkHorde;
-import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.systems.BlockInfestationSystem;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
+import com.github.sculkhorde.util.BlockAlgorithms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +23,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class SculkBeeInfectorEntity extends SculkBeeHarvesterEntity implements GeoEntity {
@@ -116,13 +118,15 @@ public class SculkBeeInfectorEntity extends SculkBeeHarvesterEntity implements G
             return;
         }
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {
-            CursorSurfaceInfectorEntity cursor = new CursorSurfaceInfectorEntity(level());
-            cursor.setPos(this.blockPosition().getX(), this.blockPosition().getY(), this.blockPosition().getZ());
-            cursor.setMaxTransformations(100);
-            cursor.setMaxRange(100);
-            cursor.setTickIntervalMilliseconds(500);
-            cursor.setSearchIterationsPerTick(20);
-            level().addFreshEntity(cursor);
+            Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+
+            if(cursor.isPresent())
+            {
+                cursor.get().setMaxTransformations(100);
+                cursor.get().setMaxRange(100);
+                cursor.get().setTickIntervalTicks(1);
+                cursor.get().setSearchIterationsPerTick(20);
+            }
         }));
     }
 

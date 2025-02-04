@@ -105,10 +105,9 @@ public class DevInfectionTree {
      * @param maxInfections The maximum number of infections the cursor can perform
      */
     public void createInfectionCursor(int maxInfections) {
-        cursorInfection = CursorSystem.createSurfaceInfestorVirtualCursor(world, infectedTargetPosition);
+        cursorInfection = CursorSystem.createPerformanceExemptSurfaceInfestorVirtualCursor(world, infectedTargetPosition);
         cursorInfection.setMaxRange(maxInfections);
         cursorInfection.setTickIntervalTicks(0);
-        cursorInfection.setCanBeManuallyTicked(false);
     }
 
     /**
