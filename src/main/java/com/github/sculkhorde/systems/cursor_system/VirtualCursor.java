@@ -85,6 +85,11 @@ public class VirtualCursor implements ICursor{
         return uuid;
     }
 
+    public boolean isSuccessfullyFinished()
+    {
+        return state == State.FINISHED;
+    }
+
     @Override
     public void setToBeDeleted() {
         toBeDeleted = true;

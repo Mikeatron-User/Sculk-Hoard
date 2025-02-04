@@ -5,6 +5,7 @@ import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
 import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.*;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
 import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
@@ -281,13 +282,11 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             return;
         }
 
-        VirtualSurfaceInfestorCursor cursor = new VirtualSurfaceInfestorCursor(level());
-        cursor.moveTo(this.blockPosition().getX(), this.blockPosition().getY() - 1, this.blockPosition().getZ());
+        VirtualSurfaceInfestorCursor cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition().below());
         cursor.setMaxTransformations(100);
         cursor.setMaxRange(100);
         cursor.setTickIntervalTicks(1);
         cursor.setSearchIterationsPerTick(1);
-        SculkHorde.cursorSystem.addVirtualCursor(cursor);
 
         /*
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {

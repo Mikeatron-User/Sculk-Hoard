@@ -2,6 +2,8 @@ package com.github.sculkhorde.systems.cursor_system;
 
 import com.github.sculkhorde.common.entity.infection.CursorEntity;
 import com.github.sculkhorde.core.SculkHorde;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -80,6 +82,14 @@ public class CursorSystem {
 
     // Virtual Cursors Methods -----------------------------------------------------------------------------------------
 
+    public static VirtualSurfaceInfestorCursor createSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
+    {
+        VirtualSurfaceInfestorCursor cursor = new VirtualSurfaceInfestorCursor(level);
+        cursor.moveTo(pos.getX(), pos.getY(), pos.getZ());
+        SculkHorde.cursorSystem.addVirtualCursor(cursor);
+        return cursor;
+    }
+
     public void addVirtualCursor(ICursor entity)
     {
         virtualCursors.insertCursor(entity);
@@ -102,7 +112,9 @@ public class CursorSystem {
     {
         ArrayList<ICursor> listOfCursors = virtualCursors.getList();
 
-        for(int i = 0; i < SculkHorde.autoPerformanceSystem.getCursorsToTickPerTick(); i++)
+        int cursorsTicked = 0;
+
+        for(int i = 0; i < SculkHorde.cursorSystem.getSizeOfVirtualCursorList() && cursorsTicked <= SculkHorde.autoPerformanceSystem.getCursorsToTickPerTick(); i++)
         {
             if(virtualCursorIndex >= listOfCursors.size())
             {
@@ -118,8 +130,16 @@ public class CursorSystem {
                 continue;
             }
 
-            cursorAtIndex.tick();
+            // If this cursor can be manually ticked, count it.
+            // Cursors that cant be manually ticked are usually important ones
+            // like the ones from the dev infectinator or creeper cursors.
+            // This is a sudo high priority system.
+            if(cursorAtIndex.canBeManuallyTicked())
+            {
+                cursorsTicked++;
+            }
 
+            cursorAtIndex.tick();
             virtualCursorIndex++;
         }
     }
