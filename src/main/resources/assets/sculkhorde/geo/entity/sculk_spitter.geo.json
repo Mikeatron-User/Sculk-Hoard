@@ -3,7 +3,7 @@
 	"minecraft:geometry": [
 		{
 			"description": {
-				"identifier": "geometry.unknown",
+				"identifier": "geometry.sculk_spitter",
 				"texture_width": 64,
 				"texture_height": 64,
 				"visible_bounds_width": 3,
@@ -81,7 +81,14 @@
 								"up": {"uv": [8, 56], "uv_size": [-4, -1]},
 								"down": {"uv": [8, 61], "uv_size": [-4, -1]}
 							}
-						},
+						}
+					]
+				},
+				{
+					"name": "tendril",
+					"parent": "tumor_1",
+					"pivot": [-4.5, 29, -1],
+					"cubes": [
 						{
 							"origin": [-11.5, 27, -2],
 							"size": [8, 8, 0],
@@ -93,11 +100,6 @@
 							}
 						}
 					]
-				},
-				{
-					"name": "tendril",
-					"parent": "tumor_1",
-					"pivot": [-4.5, 29, -1]
 				},
 				{
 					"name": "tumor_2",
@@ -123,7 +125,7 @@
 				{
 					"name": "tendril_2",
 					"parent": "tumor_2",
-					"pivot": [8, 26, 2],
+					"pivot": [5, 26, 1],
 					"cubes": [
 						{
 							"origin": [5, 26, 1],

@@ -3,7 +3,7 @@ package com.github.sculkhorde.common.command;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.ReinforcementRequest;
 import com.github.sculkhorde.util.BlockAlgorithms;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;

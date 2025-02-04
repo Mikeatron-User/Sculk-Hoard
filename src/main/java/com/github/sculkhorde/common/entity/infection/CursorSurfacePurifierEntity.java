@@ -1,12 +1,11 @@
 package com.github.sculkhorde.common.entity.infection;
 
 import com.github.sculkhorde.core.ModEntities;
-import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.systems.BlockInfestationSystem;
+import com.github.sculkhorde.util.BlockAlgorithms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -81,10 +80,8 @@ public class CursorSurfacePurifierEntity extends CursorEntity{
         List<CursorSurfaceInfectorEntity> Infectors = this.level().getEntitiesOfClass(CursorSurfaceInfectorEntity.class, this.getBoundingBox().inflate(5.0D), isCursor);
         for(CursorSurfaceInfectorEntity infector : Infectors)
         {
-            level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {
-                infector.discard();
-                this.discard();
-            }));
+            infector.setMaxTransformations(0);
+            setMaxTransformations(0);
             break;
         }
     }

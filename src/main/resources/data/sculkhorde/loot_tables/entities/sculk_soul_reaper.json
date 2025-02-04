@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "sculkhorde:soul_animator"
+        }
+      ],
+      "name": "main",
+      "rolls": 1.0
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "sculkhorde:deep_green_music_disc",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sculkhorde:blind_and_alone_music_disc",
+          "weight": 1
+        }
+      ],
+      "name": "discs",
+      "rolls": 1.0
+    }
+  ]
+}

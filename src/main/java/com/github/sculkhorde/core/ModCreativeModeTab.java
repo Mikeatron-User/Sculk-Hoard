@@ -34,9 +34,12 @@ public class ModCreativeModeTab {
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.FUNGAL_SCULK_BLOCK.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.FUNGAL_SCULK_STEM_BLOCK.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.TENDRIL_CORE_BLOCK.get());
-                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.FERRISCULK.get());
-                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.DIASCULK.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.FERRISCITE.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.DIASCITE.get());
                 if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.SOUL_DISRUPTER.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModItems.SOUL_ANIMATOR.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.GOLEM_OF_WRATH_ANIMATOR_BLOCK.get());
+                if(ModConfig.isExperimentalFeaturesEnabled()) event.accept(ModBlocks.DEPLETED_GOLEM_OF_WRATH_ANIMATOR_BLOCK.get());
 
 
                 event.accept(ModItems.SCULK_SPORE_SPEWER_SPAWN_EGG.get());

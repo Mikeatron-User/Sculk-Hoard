@@ -1,9 +1,10 @@
 package com.github.sculkhorde.common.blockentity;
 
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.ModBlockEntities;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactory;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactoryEntry;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.ReinforcementRequest;
@@ -15,6 +16,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.Optional;
 
 import static com.github.sculkhorde.common.block.SculkMassBlock.WATERLOGGED;
 
@@ -155,11 +158,12 @@ public class SculkMassBlockEntity extends BlockEntity {
         entityFactory.requestReinforcementSculkMass(level, blockPos, context);
 
         // Spawn Block Infection
-        CursorSurfaceInfectorEntity cursor = new CursorSurfaceInfectorEntity(level);
-        cursor.setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-        cursor.setMaxTransformations(blockEntity.getStoredSculkMass() * 100);
-        cursor.setMaxRange(blockEntity.getStoredSculkMass() * 10);
-        level.addFreshEntity(cursor);
+        Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level, blockPos);
+        if(cursor.isPresent())
+        {
+            cursor.get().setMaxTransformations(blockEntity.getStoredSculkMass() * 100);
+            cursor.get().setMaxRange(blockEntity.getStoredSculkMass() * 10);
+        }
         level.setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
 
     }

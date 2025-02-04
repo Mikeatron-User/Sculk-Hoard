@@ -76,6 +76,7 @@ public class ClientModEventSubscriber {
         event.registerEntityRenderer(ModEntities.SCULK_VEX.get(), SculkVexRenderer::new);
         event.registerEntityRenderer(ModEntities.SCULK_WITCH.get(), SculkWitchRenderer::new);
         event.registerEntityRenderer(ModEntities.LIVING_ARMOR.get(), LivingArmorRenderer::new);
+        event.registerEntityRenderer(ModEntities.GOLEM_OF_WRATH.get(), GolemOfWrathRenderer::new);
 
         event.registerEntityRenderer(ModEntities.SOUL_FIRE_PROJECTILE.get(), SoulFireProjectileRenderer::new);
         event.registerEntityRenderer(ModEntities.SOUL_POISON_PROJECTILE.get(), SoulPoisonProjectileRenderer::new);
@@ -90,6 +91,7 @@ public class ClientModEventSubscriber {
         event.registerEntityRenderer(ModEntities.ELEMENTAL_ICE_MAGIC_CIRCLE.get(), ElementalIceMagicCircleRenderer::new);
         event.registerEntityRenderer(ModEntities.SOUL_SPEAR_SUMMONER.get(), SoulSpearSummonerRenderer::new);
         event.registerEntityRenderer(ModEntities.ZOLTRAAK_ATTACK_ENTITY.get(), ZoltraakAttackRenderer::new);
+        event.registerEntityRenderer(ModEntities.SOUL_BLAST_ATTACK_ENTITY.get(), SoulBlastAttackEntityRenderer::new);
     }
 
 

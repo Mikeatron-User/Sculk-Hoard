@@ -8,7 +8,7 @@ import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFacto
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.ReinforcementRequest;
 import com.github.sculkhorde.systems.BlockInfestationSystem;
 import com.github.sculkhorde.util.EntityAlgorithms;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;

@@ -1,14 +1,15 @@
 package com.github.sculkhorde.common.entity;
 
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.*;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.ModConfig;
-import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModMobEffects;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.constant.DefaultAnimations;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
@@ -98,13 +100,12 @@ public class SculkCreeperEntity extends Creeper implements ISculkSmartEntity, Ge
                 double x = this.getX() + (this.getRandom().nextDouble() * spawnRange) - spawnRange / 2;
                 double z = this.getZ() + (this.getRandom().nextDouble() * spawnRange) - spawnRange / 2;
                 double y = this.getY() + (this.getRandom().nextDouble() * spawnRange / 2) - spawnRange / 4;
-                CursorSurfaceInfectorEntity infector = new CursorSurfaceInfectorEntity(ModEntities.CURSOR_SURFACE_INFECTOR.get(), this.level());
-                infector.setPos(x, y, z);
-                infector.setTickIntervalMilliseconds(3);
-                infector.setMaxTransformations(10);
-                infector.setMaxRange(10);
-                infector.setCanBeManuallyTicked(false);
-                this.level().addFreshEntity(infector);
+                BlockPos pos = new BlockPos((int) x, (int) y, (int) z);
+
+                VirtualSurfaceInfestorCursor cursor = CursorSystem.createPerformanceExemptSurfaceInfestorVirtualCursor(level(), pos);
+                cursor.setTickIntervalTicks(0);
+                cursor.setMaxTransformations(10);
+                cursor.setMaxRange(10);
             }
         }));
     }
@@ -175,7 +176,8 @@ public class SculkCreeperEntity extends Creeper implements ISculkSmartEntity, Ge
         controllers.add(
                 new AnimationController<>(this, "walk_cycle", 5, this::poseWalkCycle),
                 new AnimationController<>(this, "attack_cycle", 5, this::poseAttackCycle),
-                new AnimationController<>(this, "blob_idle", 5, this::poseBlobIdleCycle)
+                new AnimationController<>(this, "blob_idle", 5, this::poseBlobIdleCycle),
+                DefaultAnimations.genericLivingController(this)
         );
     }
 

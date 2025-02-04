@@ -1,16 +1,21 @@
 package com.github.sculkhorde.common.entity.infection;
 
 import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
+import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+
+import java.util.Optional;
 
 public class InfectionTree {
     private TreeNode root;
     private boolean Active = false;
     private final Direction direction;
     private CursorProberEntity cursorProbe;
-    private CursorSurfaceInfectorEntity cursorInfection;
+    private VirtualSurfaceInfestorCursor cursorInfection;
     private final ServerLevel world;
     private state currentState = state.IDLE;
     private enum state {
@@ -99,11 +104,16 @@ public class InfectionTree {
      * @param maxInfections The maximum number of infections the cursor can perform
      */
     public void createInfectionCursor(int maxInfections) {
-        cursorInfection = new CursorSurfaceInfectorEntity(world);
-        cursorInfection.setPos(infectedTargetPosition.getX(), infectedTargetPosition.getY(), infectedTargetPosition.getZ());
+        Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(world, infectedTargetPosition);
+
+        if(possibleCursor.isEmpty())
+        {
+            return;
+        }
+
+        cursorInfection = possibleCursor.get();
         cursorInfection.setMaxRange(maxInfections);
-        cursorInfection.setTickIntervalMilliseconds(10);
-        this.world.addFreshEntity(cursorInfection);
+        cursorInfection.setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.1F));
     }
 
     /**
@@ -186,13 +196,13 @@ public class InfectionTree {
                 return;
             }
             // If the infection cursor is still active, wait for it to finish
-            else if(cursorInfection.isAlive())
+            else if(!cursorInfection.isSetToBeDeleted())
             {
                 return;
             }
 
             // If the infection is successful, record the findings
-            if(cursorInfection.currentTransformations > 0)
+            if(cursorInfection.isSuccessfullyFinished())
             {
                 failedInfectionAttempts = 0;
                 cursorInfection = null;

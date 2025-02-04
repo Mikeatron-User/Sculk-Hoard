@@ -3,7 +3,7 @@ package com.github.sculkhorde.common.entity;
 import com.github.sculkhorde.common.entity.goal.*;
 import com.github.sculkhorde.core.ModSounds;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -200,7 +200,8 @@ public class SculkZombieEntity extends Monster implements GeoEntity, ISculkSmart
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(
                 DefaultAnimations.genericWalkIdleController(this),
-                ATTACK_ANIMATION_CONTROLLER
+                ATTACK_ANIMATION_CONTROLLER,
+                DefaultAnimations.genericLivingController(this)
         );
     }
     @Override

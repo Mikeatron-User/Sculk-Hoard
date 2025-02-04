@@ -2,11 +2,11 @@ package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.client.model.enitity.SculkRavagerModel;
 import com.github.sculkhorde.client.renderer.entity.SculkRavagerRenderer;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.*;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModSounds;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
@@ -216,11 +216,31 @@ public class SculkRavagerEntity extends Ravager implements GeoEntity, ISculkSmar
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(DefaultAnimations.genericWalkIdleController(this).transitionLength(5));
         controllers.add(ATTACK_ANIMATION_CONTROLLER);
+        controllers.add(DefaultAnimations.genericLivingController(this));
     }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.cache;
+    }
+
+
+    public boolean dampensVibrations() {
+        return true;
+    }
+
+    // #### SOUNDS ####
+    @Nullable
+    protected SoundEvent getAmbientSound() {
+        return ModSounds.SCULK_RAVAGER_AMBIENT.get();
+    }
+
+    protected SoundEvent getHurtSound(DamageSource p_33359_) {
+        return ModSounds.SCULK_RAVAGER_HURT.get();
+    }
+
+    protected SoundEvent getDeathSound() {
+        return ModSounds.SCULK_RAVAGER_DEATH.get();
     }
 
     /** ~~~~~~~~ CLASSES ~~~~~~~~ **/
@@ -263,22 +283,6 @@ public class SculkRavagerEntity extends Ravager implements GeoEntity, ISculkSmar
             ((SculkRavagerEntity)mob).triggerAnim("attack_controller", "attack_animation");
         }
     }
-
-    public boolean dampensVibrations() {
-        return true;
-    }
-
-    // #### SOUNDS ####
-    @Nullable
-    protected SoundEvent getAmbientSound() {
-        return ModSounds.SCULK_RAVAGER_AMBIENT.get();
-    }
-
-    protected SoundEvent getHurtSound(DamageSource p_33359_) {
-        return ModSounds.SCULK_RAVAGER_HURT.get();
-    }
-
-    protected SoundEvent getDeathSound() {
-        return ModSounds.SCULK_RAVAGER_DEATH.get();
-    }
 }
+
+

@@ -1,5 +1,6 @@
 package com.github.sculkhorde.util;
 
+import com.github.sculkhorde.common.block.ISpecialStructurePlacementConditionsBlock;
 import com.github.sculkhorde.core.ModBlocks;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.mixin.structures.StructureTemplateAccessor;
@@ -497,6 +498,12 @@ public class StructureUtil {
                                 liquidPositions.add(placePosition);
                             }
                         }
+                    }
+
+                    // Handle Blocks with special placement conditions
+                    if(blockInfo.state().getBlock() instanceof ISpecialStructurePlacementConditionsBlock specialBlock)
+                    {
+                        specialBlock.executeSpecialCondition(world, placePosition);
                     }
                 }
             }

@@ -3,7 +3,7 @@ package com.github.sculkhorde.common.entity;
 import com.github.sculkhorde.common.entity.goal.*;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.TickTask;
@@ -215,7 +215,8 @@ public class SculkHatcherEntity extends Monster implements GeoEntity, ISculkSmar
         controllers.add(
                 new AnimationController<>(this, "Legs", 5, this::poseLegs),
                 new AnimationController<>(this, "Body", 5, this::poseBody),
-                DefaultAnimations.genericAttackAnimation(this, HEAD_ATTACK_ANIMATION)
+                DefaultAnimations.genericAttackAnimation(this, HEAD_ATTACK_ANIMATION),
+                DefaultAnimations.genericLivingController(this)
         );
     }
 

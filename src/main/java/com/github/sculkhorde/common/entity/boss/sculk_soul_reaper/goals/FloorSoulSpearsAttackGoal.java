@@ -34,23 +34,38 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         super(mob);
     }
 
+
     @Override
     public void start()
     {
         super.start();
         enemies = EntityAlgorithms.getHostileEntitiesInBoundingBox((ServerLevel) mob.level(), mob.getBoundingBox().inflate(20));
 
+        int distanceFromGround = (int) EntityAlgorithms.getHeightOffGround(mob);
+
         for(LivingEntity e : enemies)
         {
-            spawners.add(new FloorSoulSpearsSpawner((ServerLevel) mob.level(), mob.blockPosition(), e));
+            spawners.add(new FloorSoulSpearsSpawner((ServerLevel) mob.level(), mob.blockPosition().below(distanceFromGround), e));
         }
+    }
+
+    protected boolean areAllTargetsDead()
+    {
+        for(LivingEntity entity : enemies)
+        {
+            if(entity.isAlive())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     protected void doAttackTick() {
         elapsedAttackDuration++;
 
-        if(elapsedAttackDuration >= maxAttackDuration)
+        if(elapsedAttackDuration >= maxAttackDuration || areAllTargetsDead())
         {
             setSpellCompleted();
             return;
@@ -75,6 +90,8 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
         super.stop();
         elapsedAttackDuration = 0;
         spawner = null;
+        enemies.clear();
+        spawners.clear();
     }
 
 
@@ -149,6 +166,7 @@ public class FloorSoulSpearsAttackGoal extends ReaperCastSpellGoal
 
             // Spawn Floor Soul Spear
             FloorSoulSpearsAttackEntity entity = new FloorSoulSpearsAttackEntity(mob, current.getX(), current.getY() + 1, current.getZ(), 0);
+            entity.setOwner(mob);
             mob.level().addFreshEntity(entity);
 
             if(debugMode)

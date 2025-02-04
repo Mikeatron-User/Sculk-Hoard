@@ -3,11 +3,12 @@ package com.github.sculkhorde.common.blockentity;
 import com.github.sculkhorde.common.block.SculkBeeNestBlock;
 import com.github.sculkhorde.common.entity.SculkBeeHarvesterEntity;
 import com.github.sculkhorde.common.entity.SculkBeeInfectorEntity;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.common.structures.procedural.SculkBeeNestProceduralStructure;
 import com.github.sculkhorde.core.ModBlockEntities;
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.TickUnits;
 import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
@@ -291,13 +292,15 @@ public class SculkBeeNestBlockEntity extends BlockEntity
                 if(ModConfig.SERVER.block_infestation_enabled.get() && Math.abs(level.getGameTime() - timeOfLastCursorSpawn) >= CURSOR_SPAWN_COOLDOWN)
                 {
                     timeOfLastCursorSpawn = level.getGameTime();
-                    CursorSurfaceInfectorEntity cursor = new CursorSurfaceInfectorEntity(level);
-                    cursor.setPos(blockpos.getX(), blockpos.getY() - 1, blockpos.getZ());
-                    cursor.setMaxTransformations(100);
-                    cursor.setMaxRange(100);
-                    cursor.setTickIntervalMilliseconds(500);
-                    cursor.setSearchIterationsPerTick(10);
-                    level.addFreshEntity(cursor);
+                    Optional<VirtualSurfaceInfestorCursor> cursor = CursorSystem.createSurfaceInfestorVirtualCursor(level, blockpos);
+
+                    if(cursor.isPresent())
+                    {
+                        cursor.get().setMaxTransformations(100);
+                        cursor.get().setMaxRange(100);
+                        cursor.get().setTickIntervalTicks(TickUnits.convertSecondsToTicks(1));
+                        cursor.get().setSearchIterationsPerTick(10);
+                    }
                 }
 
             }

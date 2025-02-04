@@ -6,9 +6,9 @@
 				"identifier": "geometry.sculk_creeper",
 				"texture_width": 64,
 				"texture_height": 64,
-				"visible_bounds_width": 3,
-				"visible_bounds_height": 3.25,
-				"visible_bounds_offset": [0, 1.375, 0]
+				"visible_bounds_width": 4,
+				"visible_bounds_height": 4,
+				"visible_bounds_offset": [0, 1, 0]
 			},
 			"bones": [
 				{

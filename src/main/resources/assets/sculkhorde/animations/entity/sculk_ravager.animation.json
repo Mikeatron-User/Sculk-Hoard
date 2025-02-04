@@ -389,6 +389,37 @@
 					}
 				}
 			}
+		},
+		"misc.living": {
+			"loop": true,
+			"bones": {
+				"tendril_1": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 100 -100) * -26.4728", "Math.cos(query.anim_time * 50 -20) * -26.4728"]
+					}
+				},
+				"tendril_5": {
+					"rotation": {
+						"vector": [0, "Math.cos(query.anim_time * 200 -100) * -26.4728", "Math.cos(query.anim_time * 160 -100) * -26.4728"]
+					}
+				},
+				"tendril_2": {
+					"rotation": {
+						"vector": [-3.01, "Math.cos(query.anim_time * 150 -100) * 26.4728", "Math.cos(query.anim_time * 160 -50) * -26.4728"]
+					}
+				},
+				"tendril_3": {
+					"rotation": {
+						"vector": ["Math.cos(query.anim_time * 200 -50) * -26.4728", "Math.cos(query.anim_time * 400 -50) * -26.4728", 0]
+					}
+				},
+				"tendril_4": {
+					"rotation": {
+						"vector": ["Math.cos(query.anim_time * 120 -50) * -26.4728", "Math.cos(query.anim_time * 200 -100) * -26.4728", 0]
+					}
+				}
+			}
 		}
-	}
+	},
+	"geckolib_format_version": 2
 }

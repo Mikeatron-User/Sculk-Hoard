@@ -1,18 +1,18 @@
 package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.common.entity.boss.sculk_enderman.SculkEndermanEntity;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.*;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -36,6 +36,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 
 public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculkSmartEntity {
@@ -70,7 +71,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    private CursorSurfaceInfectorEntity cursor;
+    private VirtualSurfaceInfestorCursor cursor;
 
     private long INFECTION_INTERVAL_TICKS = TickUnits.convertSecondsToTicks(5);
     private long lastInfectionTime = 0;
@@ -230,7 +231,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
         Random random = new Random();
         boolean passRandomChance = random.nextInt(100) == 0;
-        boolean isCursorNullOrDead = cursor == null || !cursor.isAlive();
+        boolean isCursorNullOrDead = cursor == null || cursor.isSetToBeDeleted();
         boolean isBlockInfestationEnabled = ModConfig.SERVER.block_infestation_enabled.get();
         // The reason we do this instead of just checking if the horde is active is because sometimes people will spawn these
         // without activating the horde.
@@ -239,7 +240,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
 
         if (canSpawnCursor && !SculkHorde.cursorSystem.isCursorPopulationAtMax()) {
             // Spawn Block Traverser
-            tellServerToSpawnCursorNextTick();
+            spawnCursor();
             triggerAnim("spread_controller", "spread_animation");
         }
 
@@ -274,8 +275,25 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
         level().addFreshEntity(areaeffectcloud);
     }
 
-    protected void tellServerToSpawnCursorNextTick()
+    protected void spawnCursor()
     {
+        if(level().isClientSide() || level().getServer() == null)
+        {
+            return;
+        }
+
+        Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+
+        if(possibleCursor.isPresent())
+        {
+            possibleCursor.get().setMaxTransformations(100);
+            possibleCursor.get().setMaxRange(100);
+            possibleCursor.get().setTickIntervalTicks(1);
+            possibleCursor.get().setSearchIterationsPerTick(1);
+            cursor = possibleCursor.get();
+        }
+
+        /*
         level().getServer().tell(new TickTask(level().getServer().getTickCount() + 1, () -> {
             // Spawn Block Traverser
             cursor = new CursorSurfaceInfectorEntity(level());
@@ -286,6 +304,8 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             cursor.setSearchIterationsPerTick(1);
             level().addFreshEntity(cursor);
         }));
+
+         */
     }
 
     protected SoundEvent getAmbientSound() {

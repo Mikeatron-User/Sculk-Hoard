@@ -2,11 +2,13 @@ package com.github.sculkhorde.util;
 
 import com.github.sculkhorde.core.ModParticles;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -75,5 +77,32 @@ public class ParticleUtil {
                 level.sendParticles(particle, vec33.x + offset.x, vec33.y + offset.y, vec33.z + offset.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
             }
         }
+    }
+
+    public static void spawnPurityDustParticlesOnClient(ClientLevel level, BlockPos pos) {
+        double offsetX, offsetY, offsetZ;
+
+        for (int i = 0; i < 50; i++) {
+            offsetX = getRandomFloat(level.random, -0.9F, 0.9F);
+            offsetY = getRandomFloat(level.random, -0.9F, 0.9F);
+            offsetZ = getRandomFloat(level.random, -0.9F, 0.9F);
+
+            Vector3f newParticlePos = new Vector3f((float) (pos.getX() + 0.5 + offsetX), (float) (pos.getY() + 0.5 + offsetY), (float) (pos.getZ() + 0.5 + offsetZ));
+
+            spawnColoredDustParticleOnClient(level, ColorUtil.getRandomPurityColor(level.random), 1.0F, newParticlePos, new Vector3f(0));
+        }
+
+    }
+
+    protected static float getRandomFloat(RandomSource random, float min, float max) {
+        if (random == null) {
+            throw new IllegalArgumentException("Random cannot be null");
+        }
+        if (min >= max) {
+            throw new IllegalArgumentException("Min must be less than Max");
+        }
+
+        float range = max - min;
+        return random.nextFloat() * range + min;
     }
 }

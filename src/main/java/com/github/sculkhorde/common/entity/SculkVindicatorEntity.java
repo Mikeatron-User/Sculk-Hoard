@@ -4,7 +4,7 @@ import com.github.sculkhorde.common.entity.goal.*;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.core.ModSounds;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -213,7 +213,8 @@ public class SculkVindicatorEntity extends Monster implements GeoEntity, ISculkS
                 DefaultAnimations.genericWalkRunIdleController(this).transitionLength(5),
                 ATTACK_ANIMATION_CONTROLLER,
                 new AnimationController<>(this, "Legs", 5, this::poseJawCycle),
-                new AnimationController<>(this, "Tumor", 5, this::poseTumorCycle)
+                new AnimationController<>(this, "Tumor", 5, this::poseTumorCycle),
+                DefaultAnimations.genericLivingController(this)
         );
     }
 

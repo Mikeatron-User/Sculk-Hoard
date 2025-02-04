@@ -1494,6 +1494,63 @@
 					}
 				}
 			}
+		},
+		"misc.sit": {
+			"loop": true,
+			"animation_length": 0.96,
+			"bones": {
+				"legRight": {
+					"rotation": {
+						"0.0": {
+							"vector": [-84.92327, 9.96156, 0.88045]
+						},
+						"0.48": {
+							"vector": [-85.36559, 10.1732, -1.64954],
+							"easing": "easeInOutSine"
+						},
+						"0.96": {
+							"vector": [-84.92327, 9.96156, 0.88045],
+							"easing": "easeInOutSine"
+						}
+					}
+				},
+				"legLeft": {
+					"rotation": {
+						"0.0": {
+							"vector": [-84.981, -4.98093, -0.43688]
+						},
+						"0.48": {
+							"vector": [-85.2028, -5.19485, 2.06381],
+							"easing": "easeInOutSine"
+						},
+						"0.96": {
+							"vector": [-84.981, -4.98093, -0.43688],
+							"easing": "easeInOutSine"
+						}
+					}
+				}
+			}
+		},
+		"misc.living": {
+			"loop": true,
+			"bones": {
+				"tendril": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 100 -100) * -26.4728", "Math.cos(query.anim_time * 50 -20) * -26.4728"]
+					}
+				},
+				"tendril_2": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 180 -1) * -26.4728", "Math.cos(query.anim_time * 20 -20) * -26.4728"]
+					}
+				},
+				"tendril_3": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * -200 -20) * -20.4728", "Math.cos(query.anim_time * 80 -20) * -26.4728"]
+					}
+				}
+			}
 		}
-	}
+	},
+	"geckolib_format_version": 2
 }

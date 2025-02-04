@@ -1,12 +1,13 @@
 package com.github.sculkhorde.common.entity;
 
 import com.github.sculkhorde.common.entity.boss.sculk_enderman.SculkEndermanEntity;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.common.entity.goal.TargetAttacker;
-import com.github.sculkhorde.common.entity.infection.CursorSurfaceInfectorEntity;
 import com.github.sculkhorde.core.*;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -40,6 +41,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Random;
 
 public class SculkPhantomCorpseEntity extends Monster implements GeoEntity, ISculkSmartEntity {
@@ -72,7 +74,7 @@ public class SculkPhantomCorpseEntity extends Monster implements GeoEntity, IScu
     // Controls what types of entities this mob can target
     private TargetParameters TARGET_PARAMETERS = new TargetParameters(this).enableTargetPassives().enableTargetHostiles();
 
-    private CursorSurfaceInfectorEntity cursor;
+    private VirtualSurfaceInfestorCursor cursor;
 
     private long INFECTION_INTERVAL_TICKS = TickUnits.convertSecondsToTicks(2);
     private long lastInfectionTime = 0;
@@ -228,7 +230,7 @@ public class SculkPhantomCorpseEntity extends Monster implements GeoEntity, IScu
 
         Random random = new Random();
         boolean passRandomChance = random.nextInt(100) == 0;
-        boolean isCursorNullOrDead = cursor == null || !cursor.isAlive();
+        boolean isCursorNullOrDead = cursor == null || cursor.isSetToBeDeleted();
         boolean isBlockInfestationEnabled = ModConfig.SERVER.block_infestation_enabled.get();
         // The reason we do this instead of just checking if the horde is active is because sometimes people will spawn these
         // without activating the horde.
@@ -237,14 +239,17 @@ public class SculkPhantomCorpseEntity extends Monster implements GeoEntity, IScu
 
         if (canSpawnCursor && !SculkHorde.cursorSystem.isCursorPopulationAtMax()) {
             level().getServer().tell(new net.minecraft.server.TickTask(level().getServer().getTickCount() + 1, () -> {
+
                 // Spawn Block Traverser
-                cursor = new CursorSurfaceInfectorEntity(level());
-                cursor.setPos(this.blockPosition().getX(), this.blockPosition().getY() - 1, this.blockPosition().getZ());
-                cursor.setMaxTransformations(100);
-                cursor.setMaxRange(100);
-                cursor.setTickIntervalMilliseconds(50);
-                cursor.setSearchIterationsPerTick(1);
-                level().addFreshEntity(cursor);
+                Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(level(), blockPosition());
+                if(possibleCursor.isPresent())
+                {
+                    cursor = possibleCursor.get();
+                    cursor.setMaxTransformations(100);
+                    cursor.setMaxRange(100);
+                    cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.5F));
+                    cursor.setSearchIterationsPerTick(1);
+                }
             }));
             triggerAnim("spread_controller", "spread_animation");
         }

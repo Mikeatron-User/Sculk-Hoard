@@ -395,6 +395,7 @@
 		},
 		"attack": {
 			"animation_length": 0.6,
+			"override_previous_animation": true,
 			"bones": {
 				"torso": {
 					"rotation": {
@@ -527,6 +528,62 @@
 						},
 						"0.6": {
 							"vector": [0, -1.3, -0.5],
+							"easing": "easeInOutSine"
+						}
+					}
+				}
+			}
+		},
+		"misc.living": {
+			"loop": true,
+			"bones": {
+				"tendril_3": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 10 5) * -26.4728", "Math.cos(query.anim_time * 50 -20) * -26.4728"]
+					}
+				},
+				"tendril_1": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 3 10) * -26.4728", "Math.cos(query.anim_time * 1 13) * -26.4728"]
+					}
+				},
+				"tendril_2": {
+					"rotation": {
+						"vector": [-3.01374, "Math.cos(query.anim_time * 14 3) * -26.4728", "Math.cos(query.anim_time * 50 -20) * -26.4728"]
+					}
+				}
+			}
+		},
+		"misc.sit": {
+			"loop": true,
+			"animation_length": 1,
+			"bones": {
+				"rightLeg": {
+					"rotation": {
+						"0.0": {
+							"vector": [-90, 5, 0]
+						},
+						"0.52": {
+							"vector": [-90.21865, 4.99523, -2.50954],
+							"easing": "easeInOutSine"
+						},
+						"1.0": {
+							"vector": [-90, 5, 0],
+							"easing": "easeInOutSine"
+						}
+					}
+				},
+				"leftLeg": {
+					"rotation": {
+						"0.0": {
+							"vector": [-90, -7.5, 0]
+						},
+						"0.52": {
+							"vector": [-90.32902, -7.49282, 2.52154],
+							"easing": "easeInOutSine"
+						},
+						"1.0": {
+							"vector": [-90, -7.5, 0],
 							"easing": "easeInOutSine"
 						}
 					}

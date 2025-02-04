@@ -4,7 +4,7 @@ import com.github.sculkhorde.common.entity.goal.*;
 import com.github.sculkhorde.core.ModEntities;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.SquadHandler;
-import com.github.sculkhorde.util.TargetParameters;
+import com.github.sculkhorde.common.entity.components.TargetParameters;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -318,7 +318,8 @@ public class SculkWitchEntity extends Monster implements GeoEntity, ISculkSmartE
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(
                 DefaultAnimations.genericWalkIdleController(this).transitionLength(5),
-                ATTACK_ANIMATION_CONTROLLER
+                ATTACK_ANIMATION_CONTROLLER,
+                DefaultAnimations.genericLivingController(this)
         );
     }
 

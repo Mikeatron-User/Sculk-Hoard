@@ -21,6 +21,8 @@ public class TickUnits {
         return (int) (seconds * TICKS_PER_SECOND);
     }
 
+    public static long convertTicksToSeconds(long ticks) { return ticks/TICKS_PER_SECOND; }
+
     public static int convertSecondsToTicks(int seconds) {
         return seconds * TICKS_PER_SECOND;
     }
