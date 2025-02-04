@@ -223,6 +223,10 @@ public class CursorSystem {
             return;
         }
 
+        /*  The reason we wait a minute after the server starts is due to a weird issue I experienced when developing the
+            virtual cursor system. For some reason, the game will randomly stall upon generating a world at around 99%.
+            Pausing this system for a minute seems to have resolved this issue.
+         */
         if(Math.abs(ServerLifecycleHooks.getCurrentServer().overworld().getGameTime() - timeOfServerStartup) < INITIAL_WAIT_TIME_AFTER_SERVER_STARTUP)
         {
             return;
