@@ -3,9 +3,11 @@ package com.github.sculkhorde.systems.cursor_system;
 import com.github.sculkhorde.common.entity.infection.CursorEntity;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.util.BlockAlgorithms;
+import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -14,6 +16,9 @@ import java.util.UUID;
 public class CursorSystem {
 
     // Virtual Cursors Variables ---------------------------------------------------------------------------------------
+
+    long INITIAL_WAIT_TIME_AFTER_SERVER_STARTUP = TickUnits.convertMinutesToTicks(1);
+    long timeOfServerStartup = 0;
 
     SortedVirtualCursorList performanceExemptCursors = new SortedVirtualCursorList();
     SortedVirtualCursorList virtualCursors = new SortedVirtualCursorList();
@@ -157,6 +162,11 @@ public class CursorSystem {
             cursorAtIndex.tick();
         }
 
+        if(SculkHorde.savedData.isHordeDefeated())
+        {
+            return;
+        }
+
         // Tick Virtual Cursors
         ArrayList<ICursor> listOfCursors = virtualCursors.getList();
         int cursorsTicked = 0;
@@ -207,6 +217,17 @@ public class CursorSystem {
      */
     public void serverTick()
     {
+        if(timeOfServerStartup == 0)
+        {
+            timeOfServerStartup = ServerLifecycleHooks.getCurrentServer().overworld().getGameTime();
+            return;
+        }
+
+        if(Math.abs(ServerLifecycleHooks.getCurrentServer().overworld().getGameTime() - timeOfServerStartup) < INITIAL_WAIT_TIME_AFTER_SERVER_STARTUP)
+        {
+            return;
+        }
+
         if(!isPerformanceModeThresholdReached())
         {
             setManualControlOfTickingEnabled(false);
