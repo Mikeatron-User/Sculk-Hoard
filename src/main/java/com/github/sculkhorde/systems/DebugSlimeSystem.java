@@ -1,29 +1,21 @@
 package com.github.sculkhorde.systems;
 
-import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.LivingArmorEntity;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.util.TickUnits;
 import com.google.common.base.Predicates;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Predicate;
 
 public class DebugSlimeSystem {
     protected PlayerTeam redDebugTeam;
@@ -74,9 +66,9 @@ public class DebugSlimeSystem {
         slime.setPos(pos.getCenter());
         slime.setInvulnerable(true);
         slime.goalSelector.removeAllGoals(Predicates.alwaysTrue());
-        slime.setSize(2, true);
         slime.addEffect(new MobEffectInstance(MobEffects.GLOWING, Integer.MAX_VALUE, Integer.MAX_VALUE));
         slime.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, Integer.MAX_VALUE, Integer.MAX_VALUE));
+        slime.setSilent(true);
         level.addFreshEntity(slime);
         debugSlimes.add(slime);
         return slime;
@@ -88,6 +80,12 @@ public class DebugSlimeSystem {
        {
            return;
        }
+
+        for(Slime slime : debugSlimes)
+        {
+            slime.setXRot(0);
+            slime.setYRot(0);
+        }
 
        timeOfLastSlimeDeletion = SculkHorde.savedData.level.getGameTime();
 

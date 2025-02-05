@@ -3,9 +3,8 @@ package com.github.sculkhorde.common.entity.infection;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.cursor_system.CursorSystem;
 import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
-import com.github.sculkhorde.util.TickUnits;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.Optional;
@@ -113,7 +112,8 @@ public class InfectionTree {
 
         cursorInfection = possibleCursor.get();
         cursorInfection.setMaxRange(maxInfections);
-        cursorInfection.setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.1F));
+        cursorInfection.setTickIntervalTicks(10);
+        cursorInfection.setSearchIterationsPerTick(50);
     }
 
     /**

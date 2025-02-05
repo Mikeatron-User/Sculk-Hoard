@@ -5,9 +5,10 @@ import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.DebugSlimeSystem;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.EntityAlgorithms;
+import com.github.sculkhorde.util.ParticleUtil;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -334,6 +336,8 @@ public class VirtualCursor implements ICursor{
 
         lastTickTime = getLevel().getGameTime();
 
+        spawnDebugTickParticles((ServerLevel) getLevel(), getBlockPosition());
+
         // Keep track of the origin
         if (origin == BlockPos.ZERO)
         {
@@ -453,6 +457,49 @@ public class VirtualCursor implements ICursor{
 
          */
 
+    }
+
+    /**
+     * Spawns particles around the given block position on the outside of all faces.
+     *
+     * @param level The level in which to spawn the particles.
+     * @param pos The position of the block around which to spawn the particles.
+     */
+    protected void spawnDebugTickParticles(ServerLevel level, BlockPos pos) {
+        if(!SculkHorde.isDebugMode())
+        {
+            return;
+        }
+
+        // Define the number of particles to spawn per face
+        int particlesPerFace = 2;
+
+        // Define the offsets for each face of the block
+        float[][] faceOffsets = {
+                {0.5F, 0.0F, 0.0F}, // East face
+                {-0.5F, 0.0F, 0.0F}, // West face
+                {0.0F, 0.5F, 0.0F}, // Top face
+                {0.0F, -0.5F, 0.0F}, // Bottom face
+                {0.0F, 0.0F, 0.5F}, // South face
+                {0.0F, 0.0F, -0.5F} // North face
+        };
+
+        // Loop through each face
+        for (float[] offset : faceOffsets) {
+            for (int i = 0; i < particlesPerFace; i++) {
+                float particleX = pos.getX() + 0.5F + offset[0];
+                float particleY = pos.getY() + 0.5F + offset[1];
+                float particleZ = pos.getZ() + 0.5F + offset[2];
+
+                // Add some random offset to the particle position
+                particleX += (level.random.nextFloat() - 0.5F) * 0.1F;
+                particleY += (level.random.nextFloat() - 0.5F) * 0.1F;
+                particleZ += (level.random.nextFloat() - 0.5F) * 0.1F;
+
+                // Spawn the particle
+                ParticleUtil.spawnParticleOnServer(ParticleTypes.FLAME, level, new Vector3f(particleX, particleY, particleZ), 0);
+            }
+        }
     }
 
     protected void debugTick()
