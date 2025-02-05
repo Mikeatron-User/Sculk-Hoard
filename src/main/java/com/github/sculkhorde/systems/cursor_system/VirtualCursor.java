@@ -477,22 +477,22 @@ public class VirtualCursor implements ICursor{
         if(state == State.IDLE)
         {
             SculkHorde.debugSlimeSystem.glowYellow(debugSlime);
-            debugSlime.setCustomName(Component.literal("IDLE"));
+            DebugSlimeSystem.renameSlime(debugSlime, "IDLE");
         }
         else if(state == State.SEARCHING)
         {
             SculkHorde.debugSlimeSystem.glowYellow(debugSlime);
-            debugSlime.setCustomName(Component.literal("SEARCHING"));
+            DebugSlimeSystem.renameSlime(debugSlime, "SEARCHING");
         }
         else if(state == State.EXPLORING)
         {
             SculkHorde.debugSlimeSystem.glowBlue(debugSlime);
-            debugSlime.setCustomName(Component.literal("EXPLORING"));
+            DebugSlimeSystem.renameSlime(debugSlime, "EXPLORING");
         }
         else if(state == State.FINISHED)
         {
             SculkHorde.debugSlimeSystem.glowGreen(debugSlime);
-            debugSlime.setCustomName(Component.literal("FINISHED"));
+            DebugSlimeSystem.renameSlime(debugSlime, "FINISHED");
         }
     }
 

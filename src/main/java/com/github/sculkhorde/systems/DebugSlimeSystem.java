@@ -2,6 +2,7 @@ package com.github.sculkhorde.systems;
 
 import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.LivingArmorEntity;
 import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.util.TickUnits;
 import com.google.common.base.Predicates;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -35,6 +36,8 @@ public class DebugSlimeSystem {
     public static String blueDebugTeamID = "debug_blue";
 
     protected ArrayList<Slime> debugSlimes = new ArrayList<>();
+    protected long timeOfLastSlimeDeletion = 0;
+    protected final long SLIME_DELETION_INTERVAL = TickUnits.convertSecondsToTicks(30);
 
     public DebugSlimeSystem()
     {
@@ -71,9 +74,28 @@ public class DebugSlimeSystem {
         slime.setPos(pos.getCenter());
         slime.setInvulnerable(true);
         slime.goalSelector.removeAllGoals(Predicates.alwaysTrue());
+        slime.setSize(2, true);
         slime.addEffect(new MobEffectInstance(MobEffects.GLOWING, Integer.MAX_VALUE, Integer.MAX_VALUE));
+        slime.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, Integer.MAX_VALUE, Integer.MAX_VALUE));
         level.addFreshEntity(slime);
+        debugSlimes.add(slime);
         return slime;
+    }
+
+    public void serverTick()
+    {
+       if(Math.abs(SculkHorde.savedData.level.getGameTime() - timeOfLastSlimeDeletion) < SLIME_DELETION_INTERVAL)
+       {
+           return;
+       }
+
+       timeOfLastSlimeDeletion = SculkHorde.savedData.level.getGameTime();
+
+       for(Slime slime : debugSlimes)
+       {
+           slime.discard();
+       }
+       debugSlimes.clear();
     }
 
     public void glowRed(LivingEntity entity)
@@ -94,6 +116,11 @@ public class DebugSlimeSystem {
     public void glowBlue(LivingEntity entity)
     {
         joinTeam(blueDebugTeam, entity);
+    }
+
+    public static void renameSlime(Slime slime, String text)
+    {
+        slime.setCustomName(Component.literal(text));
     }
 
     private void joinTeam(PlayerTeam team, LivingEntity entity) {

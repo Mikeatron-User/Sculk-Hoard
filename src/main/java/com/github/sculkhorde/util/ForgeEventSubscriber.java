@@ -125,6 +125,7 @@ public class ForgeEventSubscriber {
         SculkHorde.entityChunkLoaderHelper.processEntityChunkLoadRequests();
         SculkHorde.beeNestActivitySystem.serverTick();
         SculkHorde.chunkInfestationSystem.serverTick();
+        SculkHorde.debugSlimeSystem.serverTick();
 
         if(ModConfig.isExperimentalFeaturesEnabled())
         {
