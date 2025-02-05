@@ -289,7 +289,7 @@ public class SculkSporeSpewerEntity extends Monster implements GeoEntity, ISculk
             possibleCursor.get().setMaxTransformations(100);
             possibleCursor.get().setMaxRange(100);
             possibleCursor.get().setTickIntervalTicks(10);
-            possibleCursor.get().setSearchIterationsPerTick(1);
+            possibleCursor.get().setSearchIterationsPerTick(10);
             cursor = possibleCursor.get();
         }
 
