@@ -7,6 +7,7 @@ import com.github.sculkhorde.core.*;
 import com.github.sculkhorde.misc.StatisticsData;
 import com.github.sculkhorde.systems.AutoPerformanceSystem;
 import com.github.sculkhorde.systems.BeeNestActivitySystem;
+import com.github.sculkhorde.systems.DebugSlimeSystem;
 import com.github.sculkhorde.systems.SculkNodesSystem;
 import com.github.sculkhorde.systems.chunk_cursor_system.ChunkInfestationSystem;
 import com.github.sculkhorde.systems.cursor_system.CursorSystem;
@@ -61,6 +62,7 @@ public class ForgeEventSubscriber {
             SculkHorde.statisticsData = new StatisticsData(); // Keep this above "SculkHorde.savedData". Otherwise, stats won't be loaded correctly.
             SculkHorde.savedData = ServerLifecycleHooks.getCurrentServer().overworld().getDataStorage().computeIfAbsent(ModSavedData::load, ModSavedData::new, SculkHorde.SAVE_DATA_ID); //Initialize Saved Data
             SculkHorde.gravemind = new Gravemind(); //Initialize Gravemind
+            SculkHorde.debugSlimeSystem = new DebugSlimeSystem();
             SculkHorde.deathAreaInvestigator = new DeathAreaInvestigator(); //Initialize Death Area Investigator
             SculkHorde.raidHandler = new RaidHandler((ServerLevel) event.getLevel()); //Initialize Raid Handler
             SculkHorde.sculkNodesSystem = new SculkNodesSystem(); //Initialize Sculk Nodes Handler

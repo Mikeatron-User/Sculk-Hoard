@@ -2,13 +2,16 @@ package com.github.sculkhorde.systems.cursor_system;
 
 import com.github.sculkhorde.core.ModConfig;
 import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.systems.DebugSlimeSystem;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,6 +57,9 @@ public class VirtualCursor implements ICursor{
     protected CursorType cursorType = CursorType.INFESTOR;
     protected int searchIterationsPerTick = 20;
     protected long tickIntervalTicks = TickUnits.convertSecondsToTicks(1);
+
+    // Debug Variables
+    protected Slime debugSlime;
 
     // Search Properties -----------------------------------------------------------------------------------------------
     protected BlockPos origin = BlockPos.ZERO;
@@ -421,6 +427,8 @@ public class VirtualCursor implements ICursor{
             return;
         }
 
+        debugTick();
+
         cursorTick();
 
         /*
@@ -445,6 +453,47 @@ public class VirtualCursor implements ICursor{
 
          */
 
+    }
+
+    protected void debugTick()
+    {
+        if(!SculkHorde.isDebugMode())
+        {
+            return;
+        }
+
+        if(debugSlime == null || !debugSlime.isAlive())
+        {
+            debugSlime = SculkHorde.debugSlimeSystem.createDebugSlime(getLevel(), getBlockPosition());
+        }
+
+        if(debugSlime.blockPosition() != getBlockPosition())
+        {
+            debugSlime.setPos(getBlockPosition().getCenter().x,
+                    getBlockPosition().getCenter().y,
+                    getBlockPosition().getCenter().z);
+        }
+
+        if(state == State.IDLE)
+        {
+            SculkHorde.debugSlimeSystem.glowYellow(debugSlime);
+            debugSlime.setCustomName(Component.literal("IDLE"));
+        }
+        else if(state == State.SEARCHING)
+        {
+            SculkHorde.debugSlimeSystem.glowYellow(debugSlime);
+            debugSlime.setCustomName(Component.literal("SEARCHING"));
+        }
+        else if(state == State.EXPLORING)
+        {
+            SculkHorde.debugSlimeSystem.glowBlue(debugSlime);
+            debugSlime.setCustomName(Component.literal("EXPLORING"));
+        }
+        else if(state == State.FINISHED)
+        {
+            SculkHorde.debugSlimeSystem.glowGreen(debugSlime);
+            debugSlime.setCustomName(Component.literal("FINISHED"));
+        }
     }
 
     protected void setTarget(BlockPos target) {
