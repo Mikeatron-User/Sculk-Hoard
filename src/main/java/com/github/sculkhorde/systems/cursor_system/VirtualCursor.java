@@ -216,6 +216,136 @@ public class VirtualCursor implements ICursor{
         }
     }
 
+    @Override
+    public void tick() {
+
+        // Play Particles on Client
+        if (getLevel() != null && getLevel().isClientSide)
+        {
+            ticksSinceLastParticleSpawn += 1;
+            if(ticksSinceLastParticleSpawn >= PARTICLE_SPAWN_COOLDOWN)
+            {
+                spawnParticleEffects();
+            }
+            return;
+        }
+
+        debugTick();
+
+        cursorTick();
+
+    }
+
+    protected void cursorTick()
+    {
+        float timeElapsedTicks = getLevel().getGameTime() - lastTickTime;
+        double tickIntervalAfterMultiplier;
+
+        if(cursorType == CursorType.INFESTOR)
+        {
+            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.infection_speed_multiplier.get();
+        }
+        else
+        {
+            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.purification_speed_multiplier.get();
+        }
+
+        if (timeElapsedTicks < Math.max(tickIntervalAfterMultiplier, 1)) {
+            return;
+        }
+
+        lastTickTime = getLevel().getGameTime();
+
+        spawnDebugTickParticles((ServerLevel) getLevel(), getBlockPosition());
+
+        // Keep track of the origin
+        if (origin == BlockPos.ZERO)
+        {
+            origin = getBlockPosition();
+        }
+
+        // If we are an infestor cursor
+        if(cursorType == CursorType.INFESTOR)
+        {
+            chanceToThanosSnapThisCursor();
+            chanceToEatItems();
+        }
+
+        long currentLifeTimeTicks = getLevel().getGameTime() - creationTickTime;
+
+        // Convert to seconds
+        // If entity has lived too long, remove it
+        if (currentLifeTimeTicks >= MAX_LIFETIME_TICKS)
+        {
+            setState(State.FINISHED);
+        }
+        else if (currentTransformations >= MAX_TRANSFORMATIONS)
+        {
+            setState(State.FINISHED);
+        }
+
+        if(state == State.IDLE)
+        {
+            IdleTick();
+        }
+        else if (state == State.SEARCHING)
+        {
+
+            // IF not complete, just return;
+            if(!searchTick())
+            {
+                return;
+            }
+
+            // If we can't find a target, finish
+            if (target.equals(BlockPos.ZERO)) {
+                setState(state = State.FINISHED);
+            }
+            else // If we find target, start infecting
+            {
+                setState(state = State.EXPLORING);
+                visitedPositions.clear();
+            }
+        }
+        else if (state == State.EXPLORING)
+        {
+            exploreTick();
+        }
+        else if (state == State.FINISHED)
+        {
+            setToBeDeleted();
+        }
+    }
+
+    protected void chanceToEatItems()
+    {
+        // Chance to eat items off ground
+        if(getLevel().random.nextFloat() > 0.1)
+        {
+            return;
+        }
+
+        AABB boundingBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(getBlockPosition().getCenter(), 20);
+        List<Entity> entities = EntityAlgorithms.getEntitiesInBoundingBox((ServerLevel) getLevel(), boundingBox, IS_DROPPED_ITEM);
+        for(Entity entity : entities)
+        {
+            if(!ModConfig.SERVER.isItemEdibleToCursors((ItemEntity) entity))
+            {
+                continue;
+            }
+            entity.discard();
+            int massToAdd = ((ItemEntity)entity).getItem().getCount();
+            SculkHorde.savedData.addSculkAccumulatedMass(massToAdd);
+            SculkHorde.statisticsData.addTotalMassFromInfestedCursorItemEating(massToAdd);
+        }
+    }
+
+    protected void IdleTick()
+    {
+        searchQueue.add(getBlockPosition());
+        setState(State.SEARCHING);
+    }
+
     /**
      * Use Breadth-First Search to find the nearest infectable block within a certain maximum distance.
      * @return true if complete. false if not complete.
@@ -316,148 +446,6 @@ public class VirtualCursor implements ICursor{
         return entity instanceof ItemEntity;
     };
 
-    protected void cursorTick()
-    {
-        float timeElapsedTicks = getLevel().getGameTime() - lastTickTime;
-        double tickIntervalAfterMultiplier;
-
-        if(cursorType == CursorType.INFESTOR)
-        {
-            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.infection_speed_multiplier.get();
-        }
-        else
-        {
-            tickIntervalAfterMultiplier = tickIntervalTicks / ModConfig.SERVER.purification_speed_multiplier.get();
-        }
-
-        if (timeElapsedTicks < Math.max(tickIntervalAfterMultiplier, 1)) {
-            return;
-        }
-
-        lastTickTime = getLevel().getGameTime();
-
-        spawnDebugTickParticles((ServerLevel) getLevel(), getBlockPosition());
-
-        // Keep track of the origin
-        if (origin == BlockPos.ZERO)
-        {
-            origin = getBlockPosition();
-        }
-
-        // If we are an infestor cursor
-        if(cursorType == CursorType.INFESTOR)
-        {
-            chanceToThanosSnapThisCursor();
-
-            // Chance to eat items off ground
-            if(getLevel().random.nextFloat() > 0.1)
-            {
-                return;
-            }
-
-            AABB boundingBox = EntityAlgorithms.createBoundingBoxCubeAtBlockPos(getBlockPosition().getCenter(), 20);
-            List<Entity> entities = EntityAlgorithms.getEntitiesInBoundingBox((ServerLevel) getLevel(), boundingBox, IS_DROPPED_ITEM);
-            for(Entity entity : entities)
-            {
-                if(!ModConfig.SERVER.isItemEdibleToCursors((ItemEntity) entity))
-                {
-                    continue;
-                }
-                entity.discard();
-                int massToAdd = ((ItemEntity)entity).getItem().getCount();
-                SculkHorde.savedData.addSculkAccumulatedMass(massToAdd);
-                SculkHorde.statisticsData.addTotalMassFromInfestedCursorItemEating(massToAdd);
-            }
-        }
-
-        long currentLifeTimeTicks = getLevel().getGameTime() - creationTickTime;
-
-        // Convert to seconds
-        // If entity has lived too long, remove it
-        if (currentLifeTimeTicks >= MAX_LIFETIME_TICKS)
-        {
-            setState(State.FINISHED);
-        }
-        else if (currentTransformations >= MAX_TRANSFORMATIONS)
-        {
-            setState(State.FINISHED);
-        }
-
-        if(state == State.IDLE)
-        {
-            searchQueue.add(getBlockPosition());
-            setState(State.SEARCHING);
-        }
-        else if (state == State.SEARCHING)
-        {
-
-            // IF not complete, just return;
-            if(!searchTick())
-            {
-                return;
-            }
-
-            // If we can't find a target, finish
-            if (target.equals(BlockPos.ZERO)) {
-                setState(state = State.FINISHED);
-            }
-            else // If we find target, start infecting
-            {
-                setState(state = State.EXPLORING);
-                visitedPositions.clear();
-            }
-        }
-        else if (state == State.EXPLORING)
-        {
-            exploreTick();
-        }
-        else if (state == State.FINISHED)
-        {
-            setToBeDeleted();
-        }
-    }
-
-    @Override
-    public void tick() {
-
-        // Play Particles on Client
-        if (getLevel() != null && getLevel().isClientSide)
-        {
-            ticksSinceLastParticleSpawn += 1;
-            if(ticksSinceLastParticleSpawn >= PARTICLE_SPAWN_COOLDOWN)
-            {
-                spawnParticleEffects();
-            }
-            return;
-        }
-
-        debugTick();
-
-        cursorTick();
-
-        /*
-        if(canBeManuallyTicked())
-        {
-            ticksRemainingBeforeCheckingIfInCursorList--;
-
-            if(ticksRemainingBeforeCheckingIfInCursorList <= 0)
-            {
-                SculkHorde.cursorSystem.computeIfAbsentVirtualCursor(this);
-                ticksRemainingBeforeCheckingIfInCursorList = CHECK_DELAY_TICKS;
-            }
-        }
-        boolean canBeManuallyTickedAndManualControlIsNotOn = (canBeManuallyTicked() && !SculkHorde.cursorSystem.isManualControlOfTickingEnabled());
-        boolean cannotBeManuallyTicked = !canBeManuallyTicked();
-
-        boolean shouldTick = canBeManuallyTickedAndManualControlIsNotOn || cannotBeManuallyTicked;
-
-        if(shouldTick) {
-            cursorTick();
-        }
-
-         */
-
-    }
 
     /**
      * Spawns particles around the given block position on the outside of all faces.

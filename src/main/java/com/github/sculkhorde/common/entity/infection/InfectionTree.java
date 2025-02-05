@@ -112,8 +112,9 @@ public class InfectionTree {
 
         cursorInfection = possibleCursor.get();
         cursorInfection.setMaxRange(maxInfections);
-        cursorInfection.setTickIntervalTicks(10);
+        cursorInfection.setTickIntervalTicks(2);
         cursorInfection.setSearchIterationsPerTick(50);
+        cursorInfection.setMaxTransformations(50);
     }
 
     /**
