@@ -293,33 +293,26 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
 
 
     // AABB Interactions -----------------------------------------------------------------------------------------------
-    protected void periodicEntityCheck(ServerLevel serverLevel, AABB boundingBox) {
-        debug.info("Periodic Entity Check");
-        consumeItems(serverLevel, boundingBox);
-    }
-
-    protected void firstEntityCheck(ServerLevel serverLevel, AABB boundingBox) {
-        debug.info("First Entity Check");
-        consumeItems(serverLevel, boundingBox);
-    }
-
-    protected void finalEntityCheck(ServerLevel serverLevel, AABB boundingBox) {
-        debug.info("Final Entity Check");
-        consumeItems(serverLevel, boundingBox);
-    }
-
-    protected void consumeItems(ServerLevel serverLevel, AABB boundingBox) {
+    protected void checkBoundingBox(ServerLevel serverLevel, AABB boundingBox) {
         List<Entity> entities = serverLevel.getEntities(null, boundingBox);
 
         for (Entity entity : entities) {
-            if (entity instanceof ItemEntity item) {
-                if (ModConfig.SERVER.isItemEdibleToCursors(item)) {
-                    item.discard();
-                }
-                else if (ComposterBlock.COMPOSTABLES.containsKey(item.getItem().getItem())) {
-                    item.discard();
-                }
-            }
+            entityCheck(serverLevel, entity);
+        }
+    }
+
+    protected void entityCheck(ServerLevel serverLevel, Entity entity) {
+        if (entity instanceof ItemEntity item) {
+            consumeItem(item);
+        }
+    }
+
+    protected void consumeItem(ItemEntity item) {
+        if (ModConfig.SERVER.isItemEdibleToCursors(item)) {
+            item.discard();
+        }
+        else if (ComposterBlock.COMPOSTABLES.containsKey(item.getItem().getItem())) {
+            item.discard();
         }
     }
 
@@ -413,17 +406,17 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
                 }
                 else {
                     status = State.SEARCH_CHANGE;
-                    firstEntityCheck(serverLevel, boundingBox);
+                    checkBoundingBox(serverLevel, boundingBox);
                     finalTopBlock = topBlocks.get(topBlocks.size()-1);
                 }
             }
             case CAVER -> {
                 status = State.SEARCH_CHANGE;
-                firstEntityCheck(serverLevel, boundingBox);
+                checkBoundingBox(serverLevel, boundingBox);
                 finalTopBlock = topBlocks.get(topBlocks.size()-1);
             }
             case SEARCH_CHANGE -> {
-                finalEntityCheck(serverLevel, boundingBox);
+                checkBoundingBox(serverLevel, boundingBox);
                 finish();
             }
         }
@@ -663,7 +656,7 @@ public class ChunkCursorBase<T extends ChunkCursorBase<T>> {
         fullDebug.info("Batch Complete! Checked " + blocksChecked + " blocks | Changed " + blocksChanged + " blocks");
 
         // Every 32 batches, run the periodic check
-        if (currentBatch % 32 == 0) periodicEntityCheck(serverLevel, boundingBox);
+        if (currentBatch % 32 == 0) checkBoundingBox(serverLevel, boundingBox);
 
         // Reset to 0 if anything was changed in this batch
         batchesSinceLastChange = (blocksChanged == 0) ? batchesSinceLastChange + 1 : 0;

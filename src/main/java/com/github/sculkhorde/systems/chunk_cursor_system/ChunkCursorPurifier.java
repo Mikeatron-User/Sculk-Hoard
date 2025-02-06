@@ -66,26 +66,4 @@ public class ChunkCursorPurifier extends ChunkCursorBase<ChunkCursorPurifier> {
         ChunkCursorHelper.tryToCureBlock(serverLevel, pos, !shouldPlaceFeatures());
     }
 
-    @Override
-    protected void consumeItems(ServerLevel serverLevel, AABB boundingBox) {
-        List<Entity> entities = serverLevel.getEntities(null, boundingBox);
-
-        int consumed = 0;
-
-        for (Entity entity : entities) {
-            if (entity instanceof ItemEntity item) {
-                if (ModConfig.SERVER.isItemEdibleToCursors(item)) {
-                    item.discard();
-                    consumed++;
-                }
-                else if (ComposterBlock.COMPOSTABLES.containsKey(item.getItem().getItem())) {
-                    consumed++;
-                    item.discard();
-                }
-            }
-        }
-
-        fullDebug.info("Consumed " + consumed + " items");
-    }
-
 }

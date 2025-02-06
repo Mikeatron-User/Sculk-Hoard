@@ -1,14 +1,19 @@
 package com.github.sculkhorde.systems.chunk_cursor_system;
 
 import com.github.sculkhorde.core.ModConfig;
+import com.github.sculkhorde.core.ModMobEffects;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.BlockInfestationSystem;
 import com.github.sculkhorde.util.BlockAlgorithms;
+import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.phys.AABB;
 
@@ -60,30 +65,34 @@ public class ChunkCursorInfector extends ChunkCursorBase<ChunkCursorInfector> {
     }
 
     @Override
-    protected void consumeItems(ServerLevel serverLevel, AABB boundingBox) {
-        List<Entity> entities = serverLevel.getEntities(null, boundingBox);
+    protected void entityCheck(ServerLevel serverLevel, Entity entity) {
+        super.entityCheck(serverLevel, entity);
 
-        int consumed = 0;
-        int massToAdd = 0;
+        if (entity instanceof Player player) {
+            int y1 = ChunkCursorHelper.pokeHeightMap(getServerLevel(), getPos1()).getY();
+            int y2 = ChunkCursorHelper.pokeHeightMap(getServerLevel(), getPos2()).getY();
 
-        for (Entity entity : entities) {
-            if (entity instanceof ItemEntity item) {
-                if (ModConfig.SERVER.isItemEdibleToCursors(item)) {
-                    item.discard();
-                    consumed++;
-                    massToAdd += item.getItem().getCount();
-                }
-                else if (ComposterBlock.COMPOSTABLES.containsKey(item.getItem().getItem())) {
-                    consumed++;
-                    item.discard();
-                }
-            }
+            int y = Math.min(y1, y2);
+
+            y = y - 64;
+            y = Math.max(y, 0);
+            y = Math.min(y, 319);
+
+            MobEffectInstance darkness = new MobEffectInstance(MobEffects.DARKNESS, TickUnits.convertSecondsToTicks(10), y, false, false);
+            player.addEffect(darkness);
+
+            MobEffectInstance fog = new MobEffectInstance(ModMobEffects.SCULK_FOG.get(), TickUnits.convertSecondsToTicks(10), y, false, false);
+            player.addEffect(fog);
         }
+    }
 
+    @Override
+    protected void consumeItem(ItemEntity item) {
+        int massToAdd = item.getItem().getCount();
         SculkHorde.savedData.addSculkAccumulatedMass(massToAdd);
         SculkHorde.statisticsData.addTotalMassFromInfestedCursorItemEating(massToAdd);
 
-        fullDebug.info("Consumed " + consumed + " items | Generating " + massToAdd + " mass");
+        super.consumeItem(item);
     }
 
 }

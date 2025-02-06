@@ -2,6 +2,7 @@ package com.github.sculkhorde.client;
 
 import com.github.sculkhorde.client.particle.BurrowedBurstParticle;
 import com.github.sculkhorde.client.particle.SculkCrustParticle;
+import com.github.sculkhorde.client.renderer.SculkFogRenderer;
 import com.github.sculkhorde.client.renderer.block.SculkSummonerBlockRenderer;
 import com.github.sculkhorde.client.renderer.block.SoulHarvesterBlockRenderer;
 import com.github.sculkhorde.client.renderer.entity.*;
@@ -17,6 +18,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -32,6 +34,12 @@ public class ClientModEventSubscriber {
         this.renderers.put(p_229087_1_, p_229087_2_);
     }
 
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void init(final FMLClientSetupEvent event) {
+        // Register any client-specific handlers
+        MinecraftForge.EVENT_BUS.register(new SculkFogRenderer());
+    }
 
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
