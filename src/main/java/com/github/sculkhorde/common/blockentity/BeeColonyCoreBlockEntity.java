@@ -28,7 +28,8 @@ public class BeeColonyCoreBlockEntity extends StructureCoreBlockEntity
     @Override
     protected void loadStructureVariants()
     {
-        addStructureVariant("sculkhorde:bee_colony");
+        addStructureVariant("sculkhorde:bee_colony1");
+        addStructureVariant("sculkhorde:bee_colony2");
     }
 
 }
