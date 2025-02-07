@@ -4,6 +4,7 @@ import com.github.sculkhorde.core.ModSavedData;
 import com.github.sculkhorde.core.SculkHorde;
 import com.github.sculkhorde.systems.event_system.events.HitSquadEvent;
 import com.github.sculkhorde.util.BlockAlgorithms;
+import com.github.sculkhorde.util.EntityAlgorithms;
 import com.github.sculkhorde.util.PlayerProfileHandler;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.server.level.ServerLevel;
@@ -33,13 +34,12 @@ public class HitSquadDispatcherSystem {
         {
             ModSavedData.PlayerProfileEntry profile = PlayerProfileHandler.getOrCreatePlayerProfile(player);
 
-            if(SculkHorde.isDebugMode())
+            if(!profile.isPlayerOnline())
             {
-                SculkHorde.LOGGER.info("HitSquadDispatcherSystem | DEBUG MODE ENABLED. " + player.getScoreboardName() + " IS BEING TARGETED. ");
-                return Optional.of(player);
+                continue;
             }
 
-            if(!profile.isPlayerOnline())
+            if(EntityAlgorithms.isLivingEntityExplicitDenyTarget(profile.getPlayer().get()))
             {
                 continue;
             }
@@ -70,6 +70,12 @@ public class HitSquadDispatcherSystem {
             {
                 target = profile.getPlayer();
             }
+        }
+
+        if(SculkHorde.isDebugMode() && target.isPresent())
+        {
+            SculkHorde.LOGGER.info("HitSquadDispatcherSystem | DEBUG MODE ENABLED. " + target.get().getScoreboardName() + " IS BEING TARGETED. ");
+            return target;
         }
 
         return target;

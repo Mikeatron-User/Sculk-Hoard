@@ -331,7 +331,9 @@ public class BlockInfestationSystem {
         SculkNodeBlock.tryPlaceSculkNode(world, targetPos, false);
 
         // Chance to place a sculk bee hive above the block
-        //BlockInfestationSystem.tryPlaceSculkBeeHive(world, targetPos.above());
+        if(!ModConfig.isExperimentalFeaturesEnabled()) {
+            BlockInfestationSystem.tryPlaceSculkBeeHive(world, targetPos.above());
+        }
 
         BlockInfestationSystem.tryPlaceDiseasedKelp(world, targetPos.above());
     }
