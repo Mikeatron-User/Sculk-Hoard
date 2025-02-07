@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "sculkhorde:block/golem_of_wrath_animator_block"
+  }
+}
