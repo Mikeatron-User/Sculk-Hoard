@@ -1,13 +1,13 @@
 package com.github.sculkhorde.systems;
 
-import com.github.sculkhorde.common.pools.PoolBlocks;
-import com.github.sculkhorde.core.SculkHorde;
-import com.github.sculkhorde.modding_api.BlockInfestationAPI;
 import com.github.sculkhorde.common.block.InfestationEntries.BlockInfestationTable;
 import com.github.sculkhorde.common.block.SculkNodeBlock;
 import com.github.sculkhorde.common.blockentity.SculkBeeNestBlockEntity;
+import com.github.sculkhorde.common.pools.PoolBlocks;
 import com.github.sculkhorde.core.ModBlocks;
 import com.github.sculkhorde.core.ModConfig;
+import com.github.sculkhorde.core.SculkHorde;
+import com.github.sculkhorde.modding_api.BlockInfestationAPI;
 import com.github.sculkhorde.util.BlockAlgorithms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,7 +18,9 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.MultifaceBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.IPlantable;
 
@@ -520,5 +522,22 @@ public class BlockInfestationSystem {
             }
         }
 
+    }
+
+    public static void placeSculkVein(ServerLevel level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            //BlockPos offsetPos = pos.relative(direction);
+            //BlockState sculkVeinState = getSculkVeinState(direction);
+            //level.setBlockAndUpdate(offsetPos, sculkVeinState);
+        }
+    }
+
+    private static BlockState getSculkVeinState(Direction direction) {
+        BlockState sculkVeinState = Blocks.SCULK_VEIN.defaultBlockState();
+        for (Direction face : Direction.values()) {
+            BooleanProperty property = MultifaceBlock.getFaceProperty(face);
+            sculkVeinState = sculkVeinState.setValue(property, face == direction);
+        }
+        return sculkVeinState;
     }
 }

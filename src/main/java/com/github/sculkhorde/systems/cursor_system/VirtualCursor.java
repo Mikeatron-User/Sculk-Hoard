@@ -53,7 +53,8 @@ public class VirtualCursor implements ICursor{
     public enum CursorType
     {
         INFESTOR,
-        PURIFIER
+        PURIFIER,
+        MISC
     }
 
     protected CursorType cursorType = CursorType.INFESTOR;

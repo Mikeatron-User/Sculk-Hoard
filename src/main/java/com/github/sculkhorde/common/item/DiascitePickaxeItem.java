@@ -1,9 +1,17 @@
 package com.github.sculkhorde.common.item;
 
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.ICursor;
+import com.github.sculkhorde.util.TickUnits;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.extensions.IForgeItem;
 
 public class DiascitePickaxeItem extends PickaxeItem implements IForgeItem {
@@ -23,4 +31,22 @@ public class DiascitePickaxeItem extends PickaxeItem implements IForgeItem {
     public boolean isRepairable(ItemStack stack) {
         return false;
     }
+
+    @Override
+    public boolean mineBlock(ItemStack itemStack, Level level, BlockState blockState, BlockPos pos, LivingEntity entity) {
+
+        if(entity instanceof Player player)
+        {
+            ICursor cursor = CursorSystem.createOreMinerCursor(level, blockState.getBlock(), player, pos, itemStack);
+            cursor.setMaxTransformations(64);
+            cursor.setMaxLifeTimeTicks(TickUnits.convertMinutesToTicks(5));
+            cursor.setSearchIterationsPerTick(20);
+            cursor.setMaxRange(64);
+            cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(1F));
+        }
+
+        return super.mineBlock(itemStack, level, blockState, pos, entity);
+    }
+
+
 }

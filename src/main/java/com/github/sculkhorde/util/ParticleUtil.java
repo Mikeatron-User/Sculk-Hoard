@@ -3,12 +3,14 @@ package com.github.sculkhorde.util;
 import com.github.sculkhorde.core.ModParticles;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -56,6 +58,12 @@ public class ParticleUtil {
     public static void spawnParticleOnClient(ParticleOptions particle, ClientLevel level, Vector3f position, Vector3f deltaMovement)
     {
         level.addParticle(particle, position.x, position.y, position.z, deltaMovement.x, deltaMovement.y, deltaMovement.z);
+    }
+
+    public static void spawnBlockParticleOnClient(BlockState blockState, ClientLevel level, Vector3f position, Vector3f deltaMovement)
+    {
+        level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockState),
+                position.x, position.y, position.z, deltaMovement.x, deltaMovement.y, deltaMovement.z);
     }
 
     public static void spawnParticleBeam(ServerLevel level, ParticleOptions particle, Vec3 origin, Vec3 direction, float length, float radius, float thickness)

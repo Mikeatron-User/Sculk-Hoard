@@ -6,7 +6,10 @@ import com.github.sculkhorde.util.BlockAlgorithms;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
@@ -126,6 +129,14 @@ public class CursorSystem {
         }
     }
 
+    public static VirtualOreMinerCursor createOreMinerCursor(Level level, Block blockToTarget, Player owner, BlockPos pos, ItemStack pickaxe)
+    {
+        VirtualOreMinerCursor cursor = new VirtualOreMinerCursor(level, blockToTarget, owner.getUUID(), pickaxe);
+        cursor.moveTo(pos.getX(), pos.getY(), pos.getZ());
+        SculkHorde.cursorSystem.addPerformanceExemptVirtualCursor(cursor);
+        return cursor;
+    }
+
     public static VirtualSurfaceInfestorCursor createPerformanceExemptSurfaceInfestorVirtualCursor(Level level, BlockPos pos)
     {
         VirtualSurfaceInfestorCursor cursor = new VirtualSurfaceInfestorCursor(level);
@@ -237,6 +248,7 @@ public class CursorSystem {
             setManualControlOfTickingEnabled(false);
 
             // Virtual Cursors
+            performanceExemptCursors.clean(); // Clean the list before we start ticking cursors
             virtualCursors.clean(); // Clean the list before we start ticking cursors
             tickVirtualCursors();
 
