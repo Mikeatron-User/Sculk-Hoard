@@ -1,8 +1,9 @@
 package com.github.sculkhorde.common.item;
 
-import com.github.sculkhorde.common.entity.boss.sculk_soul_reaper.ZoltraakAttackEntity;
-import com.github.sculkhorde.util.ParticleUtil;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.cursor_system.VirtualSurfaceInfestorCursor;
 import com.github.sculkhorde.util.StructureUtil;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -13,9 +14,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.extensions.IForgeItem;
 import net.minecraftforge.server.ServerLifecycleHooks;
-import org.joml.Vector3f;
+
+import java.util.Optional;
 
 public class DevWand extends Item implements IForgeItem {
 	/* NOTE:
@@ -83,10 +86,22 @@ public class DevWand extends Item implements IForgeItem {
 		ClipContext rayTrace = new ClipContext(playerIn.getEyePosition(1.0F), playerIn.getEyePosition(1.0F).add(playerIn.getLookAngle().scale(5)), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, playerIn);
 
 		//IF successful, try to place a node
-		Vector3f result = rayTrace.getTo().toVector3f();
+		Vec3 result = rayTrace.getTo();
 
-		ParticleUtil.spawnBurrowedBurstParticles(serverLevel, result, 8, 0.3F);
-		ZoltraakAttackEntity.castZoltraakOnEntity(playerIn, playerIn, rayTrace.getTo());
+		Optional<VirtualSurfaceInfestorCursor> possibleCursor = CursorSystem.createSurfaceInfestorVirtualCursor(level, BlockPos.containing(result));
+
+		if(possibleCursor.isEmpty())
+		{
+			return InteractionResultHolder.pass(itemstack);
+		}
+
+		possibleCursor.get().setMaxRange(10);
+		possibleCursor.get().setTickIntervalTicks(10);
+		possibleCursor.get().setSearchIterationsPerTick(50);
+		possibleCursor.get().setMaxTransformations(5);
+
+		//ParticleUtil.spawnBurrowedBurstParticles(serverLevel, result, 8, 0.3F);
+		//ZoltraakAttackEntity.castZoltraakOnEntity(playerIn, playerIn, rayTrace.getTo());
 
 		//LivingArmorEntity entity = new LivingArmorEntity(ModEntities.LIVING_ARMOR.get(), worldIn);
 		//entity.teleportTo(playerIn.blockPosition().getX(), playerIn.blockPosition().getY(), playerIn.blockPosition().getZ());

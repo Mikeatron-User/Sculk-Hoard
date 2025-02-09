@@ -4,15 +4,18 @@ import com.github.sculkhorde.common.block.InfestationEntries.BlockInfestationTab
 import com.github.sculkhorde.common.loot.ModLootModifier;
 import com.github.sculkhorde.common.pools.PoolBlocks;
 import com.github.sculkhorde.systems.*;
+import com.github.sculkhorde.systems.chunk_cursor_system.ChunkInfestationSystem;
 import com.github.sculkhorde.systems.gravemind_system.*;
 import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactory;
 import com.github.sculkhorde.systems.event_system.EventSystem;
 import com.github.sculkhorde.misc.StatisticsData;
 import com.github.sculkhorde.misc.contributions.ContributionHandler;
+import com.github.sculkhorde.systems.*;
+import com.github.sculkhorde.systems.cursor_system.CursorSystem;
+import com.github.sculkhorde.systems.event_system.EventSystem;
+import com.github.sculkhorde.systems.gravemind_system.Gravemind;
+import com.github.sculkhorde.systems.gravemind_system.entity_factory.EntityFactory;
 import com.github.sculkhorde.systems.raid_system.RaidHandler;
-import com.github.sculkhorde.systems.AutoPerformanceSystem;
-import com.github.sculkhorde.systems.BeeNestActivitySystem;
-import com.github.sculkhorde.systems.HitSquadDispatcherSystem;
 import com.github.sculkhorde.util.ChunkLoading.BlockEntityChunkLoaderHelper;
 import com.github.sculkhorde.util.ChunkLoading.EntityChunkLoaderHelper;
 import com.github.sculkhorde.util.DeathAreaInvestigator;
@@ -39,6 +42,7 @@ public class SculkHorde {
     public static EntityFactory entityFactory = new EntityFactory();
     public static Gravemind gravemind;
     public static ModSavedData savedData;
+    public static DebugSlimeSystem debugSlimeSystem;
     public static final Logger LOGGER = LogUtils.getLogger();
     public static BlockInfestationTable explicitInfectableBlocks;
     public static BlockInfestationTable tagInfectableBlocks;
@@ -60,6 +64,7 @@ public class SculkHorde {
     public static BeeNestActivitySystem beeNestActivitySystem;
 
     public static AutoPerformanceSystem autoPerformanceSystem;
+    public static ChunkInfestationSystem chunkInfestationSystem;
 
     //This is the instance of our class, and we register it to the ModEventBus (which I have stored in a variable).
     public SculkHorde()
