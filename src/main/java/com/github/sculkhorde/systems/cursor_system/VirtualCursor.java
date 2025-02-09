@@ -153,16 +153,11 @@ public class VirtualCursor implements ICursor{
      */
     protected boolean isObstructed(BlockState state, BlockPos pos)
     {
-        if(SculkHorde.savedData.getSculkAccumulatedMass() <= 0)
-        {
-            return false;
-        }
-
         if(BlockAlgorithms.getBlockDistance(origin, pos) > MAX_RANGE)
         {
             return true;
         }
-        else if(state.isAir())
+        else if(BlockAlgorithms.isAir(state))
         {
             return true;
         }
@@ -401,13 +396,13 @@ public class VirtualCursor implements ICursor{
         }
 
         // If there are no non-obstructed neighbors, return
-        if (neighbors.size() == 0) {
+        if (unobstructedNeighbors.size() == 0) {
             return;
         }
 
         // Find the block that is closest to target in neighbors
-        BlockPos closest = neighbors.get(0);
-        for (BlockPos pos : neighbors)
+        BlockPos closest = unobstructedNeighbors.get(0);
+        for (BlockPos pos : unobstructedNeighbors)
         {
             if (BlockAlgorithms.getBlockDistance(pos, target) < BlockAlgorithms.getBlockDistance(closest, target)) {
                 closest = pos;

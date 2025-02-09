@@ -6,6 +6,7 @@ import com.github.sculkhorde.util.ParticleUtil;
 import com.github.sculkhorde.util.PlayerProfileHandler;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -82,7 +83,7 @@ public class VirtualOreMinerCursor extends VirtualCursor{
             this.spawnDropAtLocation(itemstack1);
         }
         level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-        BlockInfestationSystem.placeSculkVein((ServerLevel) getLevel(), pos);
+        BlockInfestationSystem.placeSculkVeinAroundBlock((ServerLevel) getLevel(), pos);
     }
 
     @Nullable
@@ -104,7 +105,7 @@ public class VirtualOreMinerCursor extends VirtualCursor{
     @Override
     public void moveTo(double x, double y, double z) {
 
-        BlockInfestationSystem.placeSculkVein((ServerLevel) getLevel(), getBlockPosition());
+        BlockInfestationSystem.placeSculkVeinAroundBlock((ServerLevel) getLevel(), BlockPos.containing(x, y, z));
 
         super.moveTo(x, y, z);
     }
@@ -169,7 +170,9 @@ public class VirtualOreMinerCursor extends VirtualCursor{
         Vector3f spawnPos = new Vector3f(getBlockPosition().getX() + randomXOffset, getBlockPosition().getY() + randomYOffset, getBlockPosition().getZ() + randomZOffset);
         Vector3f velocity = new Vector3f(randomXOffset * 0.1F, randomYOffset * 0.1F, randomZOffset * 0.1F);
         ClientLevel clientLevel = (ClientLevel) getLevel();
-        ParticleUtil.spawnBlockParticleOnClient(getLevel().getBlockState(getBlockPosition()), clientLevel, spawnPos, velocity);
+        ParticleUtil.spawnBlockParticleOnClient(clientLevel.getBlockState(getBlockPosition()), clientLevel, spawnPos, velocity);
+
+        ParticleUtil.spawnPurityDustParticlesOnClient(clientLevel, BlockPos.containing((Position) spawnPos));
 
     }
 

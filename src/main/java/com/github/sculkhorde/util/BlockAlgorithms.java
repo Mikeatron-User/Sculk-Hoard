@@ -63,8 +63,9 @@ public class BlockAlgorithms {
 
     public static boolean isAir(BlockState blockState)
     {
-        return blockState.isAir();
+        return blockState.isAir() || blockState.is(Blocks.AIR) || blockState.is(Blocks.CAVE_AIR);
     }
+
     public static boolean doesNotNeedToolForDrops(BlockState blockState)
     {
         return !blockState.requiresCorrectToolForDrops();

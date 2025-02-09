@@ -42,7 +42,7 @@ public class DiascitePickaxeItem extends PickaxeItem implements IForgeItem {
             cursor.setMaxLifeTimeTicks(TickUnits.convertMinutesToTicks(5));
             cursor.setSearchIterationsPerTick(20);
             cursor.setMaxRange(64);
-            cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(1F));
+            cursor.setTickIntervalTicks(TickUnits.convertSecondsToTicks(0.2F));
         }
 
         return super.mineBlock(itemStack, level, blockState, pos, entity);

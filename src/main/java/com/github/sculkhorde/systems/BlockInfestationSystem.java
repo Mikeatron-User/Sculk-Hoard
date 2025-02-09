@@ -17,6 +17,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.MultifaceBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -508,7 +509,6 @@ public class BlockInfestationSystem {
     public static void tryPlaceDiseasedKelp(ServerLevel world, BlockPos targetPos)
     {
 
-        //Given random chance and the target location can see the sky, create a sculk hive
         if(ModConfig.isExperimentalFeaturesEnabled() && new Random().nextInt(30) <= 1 && world.getFluidState(targetPos).is(Fluids.WATER))
         {
             boolean isTargetPosEmptyWater = world.getBlockState(targetPos).is(Blocks.WATER);
@@ -524,20 +524,76 @@ public class BlockInfestationSystem {
 
     }
 
-    public static void placeSculkVein(ServerLevel level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
-            //BlockPos offsetPos = pos.relative(direction);
-            //BlockState sculkVeinState = getSculkVeinState(direction);
-            //level.setBlockAndUpdate(offsetPos, sculkVeinState);
+    public static void placeSculkVeinAroundBlock(ServerLevel level, BlockPos pos)
+    {
+        for(BlockPos neighbor: BlockAlgorithms.getNeighborsCube(pos, true))
+        {
+            placeVeinAtBlock(level, neighbor);
         }
     }
 
-    private static BlockState getSculkVeinState(Direction direction) {
-        BlockState sculkVeinState = Blocks.SCULK_VEIN.defaultBlockState();
-        for (Direction face : Direction.values()) {
-            BooleanProperty property = MultifaceBlock.getFaceProperty(face);
-            sculkVeinState = sculkVeinState.setValue(property, face == direction);
+    protected static void placeVeinAtBlock(ServerLevel level, BlockPos pos) {
+
+        boolean thereIsAValidPlacement = false;
+        BlockState blockState = level.getBlockState(pos);
+        // If the block is not air, return
+        if(!BlockAlgorithms.isAir(blockState))
+        {
+            return;
         }
-        return sculkVeinState;
+
+        // Get the blocks around the block
+        Block vein = Blocks.SCULK_VEIN;
+        BlockState northBlock = level.getBlockState(pos.north());
+        BlockState eastBlock = level.getBlockState(pos.east());
+        BlockState southBlock = level.getBlockState(pos.south());
+        BlockState westBlock = level.getBlockState(pos.west());
+        BlockState upBlock = level.getBlockState(pos.above());
+        BlockState downBlock = level.getBlockState(pos.below());
+
+
+        BlockState newBlockState = vein.defaultBlockState();
+        // If the block is valid, place it
+        if(northBlock.isFaceSturdy(level, pos, Direction.SOUTH))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.NORTH);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+        if(eastBlock.isFaceSturdy(level, pos, Direction.WEST))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.EAST);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+        if(southBlock.isFaceSturdy(level, pos, Direction.NORTH))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.SOUTH);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+        if(westBlock.isFaceSturdy(level, pos, Direction.EAST))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.WEST);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+        if(upBlock.isFaceSturdy(level, pos, Direction.DOWN))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.UP);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+        if(downBlock.isFaceSturdy(level, pos, Direction.UP))
+        {
+            thereIsAValidPlacement = true;
+            BooleanProperty property = MultifaceBlock.getFaceProperty(Direction.DOWN);
+            newBlockState = newBlockState.setValue(property, true);
+        }
+
+        if(thereIsAValidPlacement)
+        {
+            level.setBlockAndUpdate(pos, newBlockState);
+        }
     }
 }
