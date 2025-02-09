@@ -378,6 +378,11 @@ public class ModItems {
 		}
 	});
 
+	public static final RegistryObject<FerriscitePickaxeItem> FERRISCITE_PICKAXE = ITEMS.register("ferriscite_pickaxe",
+			FerriscitePickaxeItem::new);
+	public static final RegistryObject<DiascitePickaxeItem> DIASCITE_PICKAXE = ITEMS.register("diascite_pickaxe",
+			DiascitePickaxeItem::new);
+
 	public static final RegistryObject<ForgeSpawnEggItem> SCULK_SPORE_SPEWER_SPAWN_EGG = ITEMS.register("sculk_spore_spewer_spawn_egg",() ->  new ForgeSpawnEggItem(ModEntities.SCULK_SPORE_SPEWER, 0x111B21, 0xD1D6B6, new Item.Properties()));
 	public static final RegistryObject<ForgeSpawnEggItem> SCULK_MITE_SPAWN_EGG = ITEMS.register("sculk_mite_spawn_egg",() ->  new ForgeSpawnEggItem(ModEntities.SCULK_MITE, 0x062E37, 0x034150, new Item.Properties()));
 	public static final RegistryObject<ForgeSpawnEggItem> SCULK_MITE_AGGRESSOR_SPAWN_EGG = ITEMS.register("sculk_mite_aggressor_spawn_egg",() ->  new ForgeSpawnEggItem(ModEntities.SCULK_MITE_AGGRESSOR, 0x062E37, 0xA2AF86, new Item.Properties()));
