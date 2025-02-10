@@ -4,7 +4,6 @@ import com.github.sculkhorde.systems.cursor_system.CursorSystem;
 import com.github.sculkhorde.systems.cursor_system.ICursor;
 import com.github.sculkhorde.util.TickUnits;
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,7 +35,7 @@ public class DiascitePickaxeItem extends PickaxeItem implements IForgeItem {
     @Override
     public boolean mineBlock(ItemStack itemStack, Level level, BlockState blockState, BlockPos pos, LivingEntity entity) {
 
-        if(entity instanceof Player player && blockState.is(BlockTags.MINEABLE_WITH_PICKAXE) && blockState.is(BlockTags.NEEDS_DIAMOND_TOOL))
+        if(entity instanceof Player player && isCorrectToolForDrops(itemStack, blockState))
         {
             ICursor cursor = CursorSystem.createOreMinerCursor(level, blockState.getBlock(), player, pos, itemStack);
             cursor.setMaxTransformations(64);
