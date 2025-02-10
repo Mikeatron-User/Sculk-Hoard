@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+
+  "pattern":
+  [
+    "FFF",
+    " S ",
+    " S "
+  ],
+
+  "key":
+  {
+    "F":
+    {
+      "item": "sculkhorde:ferriscite"
+    },
+    "S":
+    {
+      "item": "sculkhorde:soulite_shard"
+    }
+  },
+
+  "result":
+  {
+    "item": "sculkhorde:ferriscite_pickaxe",
+    "count": 1
+  }
+}
