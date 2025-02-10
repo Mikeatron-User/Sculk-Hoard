@@ -8,6 +8,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -65,12 +66,11 @@ public class VirtualOreMinerCursor extends VirtualCursor{
     @Override
     protected void transformBlock(BlockPos pos)
     {
-        if(getOwner().isEmpty())
+        if(getOwner().isEmpty() || pickaxe.isEmpty() || pickaxe.getDamageValue() >= pickaxe.getMaxDamage() - 1)
         {
             setMaxTransformations(0);
             return;
         }
-
 
         LootParams.Builder lootparams$builder = (new LootParams.Builder((ServerLevel)getLevel()))
                 .withParameter(LootContextParams.ORIGIN, getBlockPosition().getCenter())
@@ -83,6 +83,7 @@ public class VirtualOreMinerCursor extends VirtualCursor{
             this.spawnDropAtLocation(itemstack1);
         }
         level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+        pickaxe.hurt(1, getOwner().get().getRandom(), (ServerPlayer) getOwner().get());
         BlockInfestationSystem.placeSculkVeinAroundBlock((ServerLevel) getLevel(), pos);
     }
 
