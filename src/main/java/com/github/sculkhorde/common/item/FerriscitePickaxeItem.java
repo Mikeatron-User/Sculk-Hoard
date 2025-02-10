@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.extensions.IForgeItem;
 
-public class FerriscitePickaxeItem extends PickaxeItem implements IForgeItem {
+public class FerriscitePickaxeItem extends PickaxeItem implements IForgeItem, IHealthRepairable {
     protected static float ATTACK_SPEED = 1.0F;
     protected static int ATTACK_DAMAGE = 5;
     public static String blocksBrokenTagID = "blocks_broken";
@@ -144,5 +144,10 @@ public class FerriscitePickaxeItem extends PickaxeItem implements IForgeItem {
         }
 
         super.inventoryTick(itemStack, level, entity, slot, selected);
+    }
+
+    @Override
+    public void repair(ItemStack stack, int amount) {
+        stack.setDamageValue(Math.max(stack.getDamageValue() - amount, 0));
     }
 }

@@ -183,6 +183,17 @@ public class ForgeEventSubscriber {
             }
         }
 
+        // If a player kills an entity (That is not sculk)
+        if(killerEntity instanceof ServerPlayer player)
+        {
+            if(EntityAlgorithms.isSculkLivingEntity.test(event.getEntity()))
+            {
+                return;
+            }
+
+            InventoryUtil.repairIHealthRepairableItemStacks(player.getInventory(), (int) event.getEntity().getMaxHealth());
+        }
+
     }
 
     @SubscribeEvent

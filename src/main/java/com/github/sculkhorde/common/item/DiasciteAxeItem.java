@@ -11,7 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.extensions.IForgeItem;
 
-public class DiasciteAxeItem extends AxeItem implements IForgeItem {
+public class DiasciteAxeItem extends AxeItem implements IForgeItem, IHealthRepairable {
     protected static float ATTACK_SPEED = 1.0F;
     protected static int ATTACK_DAMAGE = 5;
     protected static Properties PROPERTIES = new Properties()
@@ -46,4 +46,8 @@ public class DiasciteAxeItem extends AxeItem implements IForgeItem {
     }
 
 
+    @Override
+    public void repair(ItemStack stack, int amount) {
+        stack.setDamageValue(Math.max(stack.getDamageValue() - amount, 0));
+    }
 }
