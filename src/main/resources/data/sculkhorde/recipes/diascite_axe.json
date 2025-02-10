@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+
+  "pattern":
+  [
+    " DD",
+    " SD",
+    " S "
+  ],
+
+  "key":
+  {
+    "D":
+    {
+      "item": "sculkhorde:diascite"
+    },
+    "S":
+    {
+      "item": "sculkhorde:soulite_shard"
+    }
+  },
+
+  "result":
+  {
+    "item": "sculkhorde:diascite_axe",
+    "count": 1
+  }
+}
